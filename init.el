@@ -1,20 +1,31 @@
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
-(set-fringe-mode 10)
 ;;(toggle-scroll-bar -1)
 (tool-bar-mode -1) ; Disable tool bar 
 (setq inhibit-splash-screen t)
 (setq ido-everywhere t)
 (setq ido-enable-flex-matching t)
-(ido-mode t)
-(load-theme 'nord t)
-;;(load-theme 'tango-dark)
+;;(ido-mode t)
 
 (setq nord-uniform-mode-lines t)
 
 ;; Set up the visible bell
 (setq visible-bell t)
 (set-face-attribute 'default nil :font "Fira Code" :height 110)
+
+(column-number-mode)
+(global-display-line-numbers-mode t)
+
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Disable line numbers for some modes
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                eshell-mode-hook
+		neotree-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (defun pulse-line (&rest _)
       "Pulse the current line."
@@ -48,6 +59,12 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(use-package nord-theme
+  :init (load-theme 'nord t))
+;;(load-theme 'tango-dark)
+;;(use-package doom-themes
+;;  :init (load-theme 'doom-palenight t))
+
 (use-package ivy
   :diminish
   :config
@@ -58,24 +75,6 @@
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("197cefea731181f7be51e9d498b29fb44b51be33484b17416b9855a2c4243cb1" default))
- '(package-selected-packages
-   '(go-mode lsp-ui lsp-mode which-key company hydra flycheck use-package neotree magit nord-theme))
- '(warning-suppress-log-types '((comp))))
-;;yasnippet -> after hydra
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
 ;; ---- Put backup files neatly away                                                 
 (let ((backup-dir "~/tmp/emacs/backups")
@@ -165,11 +164,18 @@ If KWD is a number, get the corresponding match group."
   :hook ((emacs-lisp-mode . (lambda ()
                               (setq-local company-backends '(company-elisp))))
          (emacs-lisp-mode . company-mode))
-  :config
-;;  (company-keymap--unbind-quick-access company-active-map)
+  :config 
+  ;;  (company-keymap--unbind-quick-access company-active-map)
   (company-tng-configure-default)
-  (setq company-idle-delay 0.1
-        company-minimum-prefix-length 1))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.1)
+  (company-show-quick-access "off")  
+  (company-quick-access-hint-function (lambda (param) " unknown")))
+
+;; company-quick-access-hint-function  
+;;(use-package company-box
+;;  :hook (company-mode . company-box-mode))
 
 (use-package flycheck
   :ensure t)
@@ -196,3 +202,8 @@ If KWD is a number, get the corresponding match group."
   (setq gofmt-command "goimports"))
 
 (global-set-key (kbd "<f5>") #'recompile)
+
+(use-package magit
+  :commands magit-status
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
