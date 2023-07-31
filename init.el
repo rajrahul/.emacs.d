@@ -60,6 +60,10 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
+
 ;; Let the desktop background show through
 ;; (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
 ;; (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
@@ -69,15 +73,6 @@
   :diminish which-key-mode
   :config
   (setq which-key-idle-delay 1))
-  
-
-(use-package nord-theme
-  :init (load-theme 'nord t))
-;;(load-theme 'tango-dark)
-;;(use-package doom-themes
-;;  :init (load-theme 'doom-palenight t))
-;;(use-package dracula-theme
-;;  :init (load-theme 'dracula t))
 
 (use-package ivy
   :diminish
@@ -85,6 +80,84 @@
   (ivy-mode 1))
 
 (use-package all-the-icons)
+
+;;(use-package projectile
+;;  :ensure t
+;;  :config
+;;  (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
+;;  (projectile-mode +1))
+
+(use-package treemacs
+  :demand t
+  :config
+  (setq treemacs-follow-after-init t
+        treemacs-width 30
+	treemacs-width-increment 1
+        treemacs-indentation 1
+        treemacs-follow-after-init t
+        treemacs-recenter-after-file-follow nil
+        treemacs-silent-refresh t
+        treemacs-silent-filewatch t
+        treemacs-change-root-without-asking t
+        treemacs-sorting 'alphabetic-desc
+        treemacs-show-hidden-files t
+        treemacs-never-persist nil
+	;; Do not add treemacs as part of window cycles
+        treemacs-is-never-other-window t
+        ;;treemacs-indentation-string (propertize " ⫶ " 'face 'font-lock-comment-face)
+	)
+  
+  ;;	(setq treemacs-follow-after-init t
+  ;;				treemacs-is-never-other-window t
+  ;;				treemacs-width 20)
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-git-mode 'simple)
+  (treemacs-fringe-indicator-mode t)
+;;  :hook (after-init . treemacs)
+  :bind
+  (:map global-map
+	([f8]   . treemacs)
+	("C-<f8>" . treemacs-select-window))
+)
+
+;;(use-package neotree)
+;;(require 'neotree)
+;;(global-set-key [f8] 'neotree-toggle)
+
+(use-package kaolin-themes
+  :config
+;;  (load-theme 'kaolin-dark t)
+  (load-theme 'kaolin-light t)
+;;  (load-theme 'kaolin-valley-light t)
+;;  (load-theme 'kaolin-aurora t)
+;;  (load-theme 'kaolin-bubblegum t)
+;;  (load-theme 'kaolin-eclipse t)
+;;  (load-theme 'kaolin-galaxy t)
+;;  (load-theme 'kaolin-ocean t)
+;;  (load-theme 'kaolin-temple t)
+;;  (load-theme 'kaolin-valley-dark t)
+  (kaolin-treemacs-theme)
+)
+
+
+;;(use-package nord-theme
+;;  :init (load-theme 'nord t))
+;;Uncomment the line below for a light theme
+;;(use-package modus-themes
+;;  :init (load-theme 'modus-operandi-tinted t))
+
+;;The following is white version of the modus-operandi
+;;(load-theme 'modus-operandi)
+
+;; Vivendi is dark theme
+;;(load-theme 'modus-vivendi)
+
+;;(load-theme 'tango-dark)
+;;(use-package doom-themes
+;;  :init (load-theme 'doom-palenight t))
+;;(use-package dracula-theme
+;;  :init (load-theme 'dracula t))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -126,50 +199,12 @@
 
 (put 'downcase-region 'disabled nil)
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-;; Org mode Tag color
-(require 'org)
-
-(add-to-list 'org-tag-faces '("@.*" . (:foreground "red")))
-
-;; Reset the global variable to nil, just in case org-mode has already beeen used.
-(when org-tags-special-faces-re
-  (setq org-tags-special-faces-re nil))
-
-(defun org-get-tag-face (kwd)
-  "Get the right face for a TODO keyword KWD.
-If KWD is a number, get the corresponding match group."
-  (if (numberp kwd) (setq kwd (match-string kwd)))
-  (let ((special-tag-face (or (cdr (assoc kwd org-tag-faces))
-                              (and (string-match "^@.*" kwd)
-                                   (cdr (assoc "@.*" org-tag-faces))))))
-    (or (org-face-from-face-or-color 'tag 'org-tag special-tag-face)
-        'org-tag)))
-(recentf-mode 1)
-(save-place-mode 1)
-
-(use-package neotree)
-;;(require 'neotree)
-(global-set-key [f8] 'neotree-toggle)
-
 (use-package lsp-mode
   :ensure t
   :bind (:map lsp-mode-map
               ("C-c d" . lsp-describe-thing-at-point)
               ("C-c a" . lsp-execute-code-action))
-  :bind-keymap ("C-c l" . lsp-command-map)
+  :bind-keymap ("C-c l" . lsp-command-map)  
   :config
   (lsp-enable-which-key-integration t))
 
@@ -223,117 +258,5 @@ If KWD is a number, get the corresponding match group."
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 
-;;--------------------------------------------------------
-;;(require 'org-present)
-
-;; Set reusable font name variables
-(defvar my/fixed-width-font "Fira Code"
-  "The font to use for monospaced (fixed width) text.")
-
-(defvar my/variable-width-font "Iosevka Aile"
-  "The font to use for variable-pitch (document) text.")
-
-;; NOTE: These settings might not be ideal for your machine, tweak them as needed!
-;; (set-face-attribute 'default nil :font my/fixed-width-font :weight 'light :height 180)
-;; (set-face-attribute 'fixed-pitch nil :font my/fixed-width-font :weight 'light :height 190)
-;; (set-face-attribute 'variable-pitch nil :font my/variable-width-font :weight 'light :height 1.3)
-
-;;; Org Mode Appearance ------------------------------------
-
-;; Load org-faces to make sure we can set appropriate faces
-(require 'org-faces)
-
-;; Hide emphasis markers on formatted text
-(setq org-hide-emphasis-markers t)
-
-;; Resize Org headings
-(dolist (face '((org-level-1 . 1.2)
-                (org-level-2 . 1.1)
-                (org-level-3 . 1.05)
-                (org-level-4 . 1.0)
-                (org-level-5 . 1.1)
-                (org-level-6 . 1.1)
-                (org-level-7 . 1.1)
-                (org-level-8 . 1.1)))
-  (set-face-attribute (car face) nil :font my/variable-width-font :weight 'medium :height (cdr face)))
-
-;; Make the document title a bit bigger
-(set-face-attribute 'org-document-title nil :font my/variable-width-font :weight 'bold :height 1.3)
-
-;; Make sure certain org faces use the fixed-pitch face when variable-pitch-mode is on
-(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-formula nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
-
-;;; Centering Org Documents --------------------------------
-
-;; Install visual-fill-column
-(unless (package-installed-p 'visual-fill-column)
-  (package-install 'visual-fill-column))
-
-;; Configure fill width
-(setq visual-fill-column-width 110
-      visual-fill-column-center-text t)
-
-;;; Org Present --------------------------------------------
-
-;; Install org-present if needed
-(unless (package-installed-p 'org-present)
-  (package-install 'org-present))
-
-;;(defun my/org-present-prepare-slide (buffer-name heading)
-;;  ;; Show only top-level headlines
-;;  (org-overview)
-;;
-;;  ;; Unfold the current entry
-;;  (org-show-entry)
-;;
-;;  ;; Show only direct subheadings of the slide but don't expand them
-;;  (org-show-children))
-
-(defun my/org-present-start ()
-  ;; Tweak font sizes
-  (setq-local face-remapping-alist '((default (:height 1.5) variable-pitch)
-                                     (header-line (:height 4.0) variable-pitch)
-                                     (org-document-title (:height 1.75) org-document-title)
-                                     (org-code (:height 1.55) org-code)
-                                     (org-verbatim (:height 1.55) org-verbatim)
-                                     (org-block (:height 1.25) org-block)
-                                     (org-block-begin-line (:height 0.7) org-block)))
-
-  ;; Set a blank header line string to create blank space at the top
-  (setq header-line-format " ")
-
-  ;; Display inline images automatically
-  (org-display-inline-images)
-
-  ;; Center the presentation and wrap lines
-  (visual-fill-column-mode 1)
-  (visual-line-mode 1))
-
-(defun my/org-present-end ()
-  ;; Reset font customizations
-  (setq-local face-remapping-alist '((default variable-pitch default)))
-
-  ;; Clear the header line string so that it isn't displayed
-  (setq header-line-format nil)
-
-  ;; Stop displaying inline images
-  (org-remove-inline-images)
-
-  ;; Stop centering the document
-  (visual-fill-column-mode 0)
-  (visual-line-mode 0))
-
-;; Turn on variable pitch fonts in Org Mode buffers
-;;(add-hook 'org-mode-hook 'variable-pitch-mode)
-
-;; Register hooks with org-present
-(add-hook 'org-present-mode-hook 'my/org-present-start)
-(add-hook 'org-present-mode-quit-hook 'my/org-present-end)
-;;(add-hook 'org-present-after-navigate-functions 'my/org-present-prepare-slide)
+;; Org mode configurations
+;;https://github.com/zzamboni/dot-emacs/blob/master/init.org
