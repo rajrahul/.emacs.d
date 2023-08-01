@@ -60,9 +60,13 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+;;Load $PATH variable
+(exec-path-from-shell-initialize)
+;;(when (memq window-system '(mac ns x))
+;;  (exec-path-from-shell-initialize))
+;;Uncomment to print path
+;;(getenv "PATH")
 
-(when (memq window-system '(mac ns x))
-  (exec-path-from-shell-initialize))
 
 ;; Let the desktop background show through
 ;; (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
@@ -87,39 +91,39 @@
 ;;  (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
 ;;  (projectile-mode +1))
 
-(use-package treemacs
-  :demand t
-  :config
-  (setq treemacs-follow-after-init t
-        treemacs-width 30
-	treemacs-width-increment 1
-        treemacs-indentation 1
-        treemacs-follow-after-init t
-        treemacs-recenter-after-file-follow nil
-        treemacs-silent-refresh t
-        treemacs-silent-filewatch t
-        treemacs-change-root-without-asking t
-        treemacs-sorting 'alphabetic-desc
-        treemacs-show-hidden-files t
-        treemacs-never-persist nil
-	;; Do not add treemacs as part of window cycles
-        treemacs-is-never-other-window t
-        ;;treemacs-indentation-string (propertize " ⫶ " 'face 'font-lock-comment-face)
-	)
-  
-  ;;	(setq treemacs-follow-after-init t
-  ;;				treemacs-is-never-other-window t
-  ;;				treemacs-width 20)
-  (treemacs-follow-mode t)
-  (treemacs-filewatch-mode t)
-  (treemacs-git-mode 'simple)
-  (treemacs-fringe-indicator-mode t)
-;;  :hook (after-init . treemacs)
-  :bind
-  (:map global-map
-	([f8]   . treemacs)
-	("C-<f8>" . treemacs-select-window))
-)
+;;(use-package treemacs
+;;  :demand t
+;;  :config
+;;  (setq treemacs-follow-after-init t
+;;        treemacs-width 30
+;;	treemacs-width-increment 1
+;;        treemacs-indentation 1
+;;        treemacs-follow-after-init t
+;;        treemacs-recenter-after-file-follow nil
+;;        treemacs-silent-refresh t
+;;        treemacs-silent-filewatch t
+;;        treemacs-change-root-without-asking t
+;;        treemacs-sorting 'alphabetic-desc
+;;        treemacs-show-hidden-files t
+;;        treemacs-never-persist nil
+;;	;; Do not add treemacs as part of window cycles
+;;        treemacs-is-never-other-window t
+;;        ;;treemacs-indentation-string (propertize " ⫶ " 'face 'font-lock-comment-face)
+;;	)
+;;  
+;;  ;;	(setq treemacs-follow-after-init t
+;;  ;;				treemacs-is-never-other-window t
+;;  ;;				treemacs-width 20)
+;;  (treemacs-follow-mode t)
+;;  (treemacs-filewatch-mode t)
+;;  (treemacs-git-mode 'simple)
+;;  (treemacs-fringe-indicator-mode t)
+;;;;  :hook (after-init . treemacs)
+;;  :bind
+;;  (:map global-map
+;;	([f8]   . treemacs)
+;;	("C-<f8>" . treemacs-select-window))
+;;)
 
 ;;(use-package neotree)
 ;;(require 'neotree)
@@ -139,25 +143,6 @@
 ;;  (load-theme 'kaolin-valley-dark t)
   (kaolin-treemacs-theme)
 )
-
-
-;;(use-package nord-theme
-;;  :init (load-theme 'nord t))
-;;Uncomment the line below for a light theme
-;;(use-package modus-themes
-;;  :init (load-theme 'modus-operandi-tinted t))
-
-;;The following is white version of the modus-operandi
-;;(load-theme 'modus-operandi)
-
-;; Vivendi is dark theme
-;;(load-theme 'modus-vivendi)
-
-;;(load-theme 'tango-dark)
-;;(use-package doom-themes
-;;  :init (load-theme 'doom-palenight t))
-;;(use-package dracula-theme
-;;  :init (load-theme 'dracula t))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -181,23 +166,6 @@
       kept-new-versions 5    ; keep some new versions                           
       kept-old-versions 2)   ; and some old ones, too
 ;; ---- end backup
-
-
-(org-babel-do-load-languages
- 'org-babel-load-languages
- (mapcar (lambda (lang) (cons lang t))
-         `(ditaa
-           dot
-           octave
-           perl
-           python
-           ruby
-	   java
-           ,(if (locate-library "ob-shell") 'shell 'sh)
-           sqlite
-           )))
-
-(put 'downcase-region 'disabled nil)
 
 (use-package lsp-mode
   :ensure t
@@ -260,3 +228,38 @@
 
 ;; Org mode configurations
 ;;https://github.com/zzamboni/dot-emacs/blob/master/init.org
+
+;; treesitter configuration
+;;(setq treesit-language-source-alist
+;;   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+;;     (cmake "https://github.com/uyha/tree-sitter-cmake")
+;;     (css "https://github.com/tree-sitter/tree-sitter-css")
+;;     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+;;     (go "https://github.com/tree-sitter/tree-sitter-go")
+;;     (html "https://github.com/tree-sitter/tree-sitter-html")
+;;     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+;;     (json "https://github.com/tree-sitter/tree-sitter-json")
+;;     (make "https://github.com/alemuller/tree-sitter-make")
+;;     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+;;     (python "https://github.com/tree-sitter/tree-sitter-python")
+;;     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+;;     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+;;     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+;;     (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+;;     (java "https://github.com/tree-sitter/tree-sitter-java")))
+;;
+;;;;Ensure  the langauages are available by running below
+;;;;(mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+;;
+;;(setq major-mode-remap-alist
+;; '((yaml-mode . yaml-ts-mode)
+;;   (bash-mode . bash-ts-mode)
+;;   (js2-mode . js-ts-mode)
+;;   (typescript-mode . typescript-ts-mode)
+;;   (json-mode . json-ts-mode)
+;;   (css-mode . css-ts-mode)
+;;   (go-mode . go-ts-mode)   
+;;   (python-mode . python-ts-mode)))
+;;
+;;
+;;
