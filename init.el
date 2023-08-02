@@ -1,3 +1,7 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;; This is for emacs 29;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;Many Packages need manual installation;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
 ;;(toggle-scroll-bar -1)
@@ -75,6 +79,11 @@
 ;; (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
 ;; (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
 
+(use-package company :ensure t :pin melpa)
+(use-package company-quickhelp :ensure t)
+(add-hook 'after-init-hook 'global-company-mode)
+(company-quickhelp-mode)
+
 (use-package which-key
   :init (which-key-mode)
   :diminish which-key-mode
@@ -94,39 +103,42 @@
 ;;  (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
 ;;  (projectile-mode +1))
 
-;;(use-package treemacs
-;;  :demand t
-;;  :config
-;;  (setq treemacs-follow-after-init t
-;;        treemacs-width 30
-;;	treemacs-width-increment 1
-;;        treemacs-indentation 1
-;;        treemacs-follow-after-init t
-;;        treemacs-recenter-after-file-follow nil
-;;        treemacs-silent-refresh t
-;;        treemacs-silent-filewatch t
-;;        treemacs-change-root-without-asking t
-;;        treemacs-sorting 'alphabetic-desc
-;;        treemacs-show-hidden-files t
-;;        treemacs-never-persist nil
-;;	;; Do not add treemacs as part of window cycles
-;;        treemacs-is-never-other-window t
-;;        ;;treemacs-indentation-string (propertize " ⫶ " 'face 'font-lock-comment-face)
-;;	)
-;;  
-;;  ;;	(setq treemacs-follow-after-init t
-;;  ;;				treemacs-is-never-other-window t
-;;  ;;				treemacs-width 20)
-;;  (treemacs-follow-mode t)
-;;  (treemacs-filewatch-mode t)
-;;  (treemacs-git-mode 'simple)
-;;  (treemacs-fringe-indicator-mode t)
-;;;;  :hook (after-init . treemacs)
-;;  :bind
-;;  (:map global-map
-;;	([f8]   . treemacs)
-;;	("C-<f8>" . treemacs-select-window))
-;;)
+;; The line below is needed to get svg working with treemacs. Still and issue with emacs29
+(setq image-types (cons 'svg image-types))
+
+(use-package treemacs
+  :demand t
+  :config
+  (setq treemacs-follow-after-init t
+        treemacs-width 30
+	treemacs-width-increment 1
+        treemacs-indentation 1
+        treemacs-follow-after-init t
+        treemacs-recenter-after-file-follow nil
+        treemacs-silent-refresh t
+        treemacs-silent-filewatch t
+        treemacs-change-root-without-asking t
+        treemacs-sorting 'alphabetic-desc
+        treemacs-show-hidden-files t
+        treemacs-never-persist nil
+	;; Do not add treemacs as part of window cycles
+        treemacs-is-never-other-window t
+        ;;treemacs-indentation-string (propertize " ⫶ " 'face 'font-lock-comment-face)
+	)
+  
+  ;;	(setq treemacs-follow-after-init t
+  ;;				treemacs-is-never-other-window t
+  ;;				treemacs-width 20)
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-git-mode 'simple)
+  (treemacs-fringe-indicator-mode t)
+;;  :hook (after-init . treemacs)
+  :bind
+  (:map global-map
+	([f8]   . treemacs)
+	("C-<f8>" . treemacs-select-window))
+)
 
 ;;(use-package neotree)
 ;;(require 'neotree)
@@ -170,64 +182,13 @@
       kept-old-versions 2)   ; and some old ones, too
 ;; ---- end backup
 
-;;(use-package lsp-mode
-;;  :ensure t
-;;  :bind (:map lsp-mode-map
-;;              ("C-c d" . lsp-describe-thing-at-point)
-;;              ("C-c a" . lsp-execute-code-action))
-;;  :bind-keymap ("C-c l" . lsp-command-map)  
-;;  :config
-;;  (lsp-enable-which-key-integration t))
-;;
-;;(use-package company
-;;  :ensure t
-;;  :hook ((emacs-lisp-mode . (lambda ()
-;;                              (setq-local company-backends '(company-elisp))))
-;;         (emacs-lisp-mode . company-mode))
-;;  :config 
-;;  ;;  (company-keymap--unbind-quick-access company-active-map)
-;;  (company-tng-configure-default)
-;;  :custom
-;;  (company-minimum-prefix-length 1)
-;;  (company-idle-delay 0.1)
-;;  (company-show-quick-access "off")  
-;;  (company-quick-access-hint-function (lambda (param) " unknown")))
-
-;; company-quick-access-hint-function  
-;;(use-package company-box
-;;  :hook (company-mode . company-box-mode))
-
 (use-package flycheck
   :ensure t)
-
-;;;;; Go
-;;(use-package go-mode
-;;  :ensure t
-;;  :hook ((go-mode . lsp-deferred)
-;;         (go-mode . company-mode))
-;;  :bind (:map go-mode-map
-;;              ("<f6>"  . gofmt)
-;;              ("C-c 6" . gofmt))
-;;  :config
-;;  (require 'lsp-go)
-;;  ;; https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
-;;  (setq lsp-go-analyses
-;;        '((fieldalignment . t)
-;;          (nilness        . t)
-;;          (unusedwrite    . t)
-;;          (unusedparams   . t)))
-;;  ;; GOPATH/bin
-;;  (add-to-list 'exec-path "~/go/bin")
-;;  ;; requires goimports to be installed
-;;  (setq gofmt-command "goimports"))
-;;
-;;(global-set-key (kbd "<f5>") #'recompile)
 
 (use-package magit
   :commands magit-status
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
 
 ;; Org mode configurations
 ;;https://github.com/zzamboni/dot-emacs/blob/master/init.org
@@ -272,7 +233,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+   '(company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
