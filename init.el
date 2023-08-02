@@ -41,7 +41,7 @@
     (interactive) 
     (pulse-line)))
 
-(require 'package)
+;;(require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
 	("org" . "https://orgmode.org/elpa/")
@@ -58,9 +58,12 @@
   (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+
 
 ;;Load $PATH variable
+(use-package exec-path-from-shell
+  :ensure t)
+
 (exec-path-from-shell-initialize)
 ;;(when (memq window-system '(mac ns x))
 ;;  (exec-path-from-shell-initialize))
@@ -167,28 +170,28 @@
       kept-old-versions 2)   ; and some old ones, too
 ;; ---- end backup
 
-(use-package lsp-mode
-  :ensure t
-  :bind (:map lsp-mode-map
-              ("C-c d" . lsp-describe-thing-at-point)
-              ("C-c a" . lsp-execute-code-action))
-  :bind-keymap ("C-c l" . lsp-command-map)  
-  :config
-  (lsp-enable-which-key-integration t))
-
-(use-package company
-  :ensure t
-  :hook ((emacs-lisp-mode . (lambda ()
-                              (setq-local company-backends '(company-elisp))))
-         (emacs-lisp-mode . company-mode))
-  :config 
-  ;;  (company-keymap--unbind-quick-access company-active-map)
-  (company-tng-configure-default)
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.1)
-  (company-show-quick-access "off")  
-  (company-quick-access-hint-function (lambda (param) " unknown")))
+;;(use-package lsp-mode
+;;  :ensure t
+;;  :bind (:map lsp-mode-map
+;;              ("C-c d" . lsp-describe-thing-at-point)
+;;              ("C-c a" . lsp-execute-code-action))
+;;  :bind-keymap ("C-c l" . lsp-command-map)  
+;;  :config
+;;  (lsp-enable-which-key-integration t))
+;;
+;;(use-package company
+;;  :ensure t
+;;  :hook ((emacs-lisp-mode . (lambda ()
+;;                              (setq-local company-backends '(company-elisp))))
+;;         (emacs-lisp-mode . company-mode))
+;;  :config 
+;;  ;;  (company-keymap--unbind-quick-access company-active-map)
+;;  (company-tng-configure-default)
+;;  :custom
+;;  (company-minimum-prefix-length 1)
+;;  (company-idle-delay 0.1)
+;;  (company-show-quick-access "off")  
+;;  (company-quick-access-hint-function (lambda (param) " unknown")))
 
 ;; company-quick-access-hint-function  
 ;;(use-package company-box
@@ -197,28 +200,28 @@
 (use-package flycheck
   :ensure t)
 
-;;; Go
-(use-package go-mode
-  :ensure t
-  :hook ((go-mode . lsp-deferred)
-         (go-mode . company-mode))
-  :bind (:map go-mode-map
-              ("<f6>"  . gofmt)
-              ("C-c 6" . gofmt))
-  :config
-  (require 'lsp-go)
-  ;; https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
-  (setq lsp-go-analyses
-        '((fieldalignment . t)
-          (nilness        . t)
-          (unusedwrite    . t)
-          (unusedparams   . t)))
-  ;; GOPATH/bin
-  (add-to-list 'exec-path "~/go/bin")
-  ;; requires goimports to be installed
-  (setq gofmt-command "goimports"))
-
-(global-set-key (kbd "<f5>") #'recompile)
+;;;;; Go
+;;(use-package go-mode
+;;  :ensure t
+;;  :hook ((go-mode . lsp-deferred)
+;;         (go-mode . company-mode))
+;;  :bind (:map go-mode-map
+;;              ("<f6>"  . gofmt)
+;;              ("C-c 6" . gofmt))
+;;  :config
+;;  (require 'lsp-go)
+;;  ;; https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
+;;  (setq lsp-go-analyses
+;;        '((fieldalignment . t)
+;;          (nilness        . t)
+;;          (unusedwrite    . t)
+;;          (unusedparams   . t)))
+;;  ;; GOPATH/bin
+;;  (add-to-list 'exec-path "~/go/bin")
+;;  ;; requires goimports to be installed
+;;  (setq gofmt-command "goimports"))
+;;
+;;(global-set-key (kbd "<f5>") #'recompile)
 
 (use-package magit
   :commands magit-status
@@ -230,36 +233,49 @@
 ;;https://github.com/zzamboni/dot-emacs/blob/master/init.org
 
 ;; treesitter configuration
-;;(setq treesit-language-source-alist
-;;   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-;;     (cmake "https://github.com/uyha/tree-sitter-cmake")
-;;     (css "https://github.com/tree-sitter/tree-sitter-css")
-;;     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-;;     (go "https://github.com/tree-sitter/tree-sitter-go")
-;;     (html "https://github.com/tree-sitter/tree-sitter-html")
-;;     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-;;     (json "https://github.com/tree-sitter/tree-sitter-json")
-;;     (make "https://github.com/alemuller/tree-sitter-make")
-;;     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-;;     (python "https://github.com/tree-sitter/tree-sitter-python")
-;;     (toml "https://github.com/tree-sitter/tree-sitter-toml")
-;;     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-;;     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-;;     (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-;;     (java "https://github.com/tree-sitter/tree-sitter-java")))
-;;
-;;;;Ensure  the langauages are available by running below
-;;;;(mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
-;;
-;;(setq major-mode-remap-alist
-;; '((yaml-mode . yaml-ts-mode)
-;;   (bash-mode . bash-ts-mode)
-;;   (js2-mode . js-ts-mode)
-;;   (typescript-mode . typescript-ts-mode)
-;;   (json-mode . json-ts-mode)
-;;   (css-mode . css-ts-mode)
-;;   (go-mode . go-ts-mode)   
-;;   (python-mode . python-ts-mode)))
-;;
-;;
-;;
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go" "master" "src")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+     (java "https://github.com/tree-sitter/tree-sitter-java")))
+
+;;Ensure  the langauages are available by running below
+;;(mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+
+(setq major-mode-remap-alist
+ '((yaml-mode . yaml-ts-mode)
+   (bash-mode . bash-ts-mode)
+   (js2-mode . js-ts-mode)
+   (typescript-mode . typescript-ts-mode)
+   (json-mode . json-ts-mode)
+   (css-mode . css-ts-mode)
+   (go-mode . go-ts-mode)   
+   (python-mode . python-ts-mode)))
+
+(setq treesit-load-name-override-list '((js "libtree-sitter-gomod" "tree_sitter_go")))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
