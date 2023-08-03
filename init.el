@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;; This is for emacs 29;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;Many Packages need manual installation;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
@@ -22,6 +22,9 @@
 ; load directory for configuration files for emacs
 (add-to-list 'load-path (concat user-emacs-directory "setup-files/"))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;;(set-frame-parameter nil 'alpha-background 70)
+;;(add-to-list 'default-frame-alist '(alpha-background . 70))
 
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
@@ -97,6 +100,7 @@
 
 (use-package all-the-icons)
 
+(require 'project)
 ;;(use-package projectile
 ;;  :ensure t
 ;;  :config
@@ -225,7 +229,7 @@
    (go-mode . go-ts-mode)   
    (python-mode . python-ts-mode)))
 
-(setq treesit-load-name-override-list '((js "libtree-sitter-gomod" "tree_sitter_go")))
+(setq treesit-load-name-override-list '((js "tree-sitter-gomod" "tree-sitter-go")))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
