@@ -82,35 +82,60 @@
 ;; (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
 ;; (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
 
-(use-package company :ensure t :pin melpa)
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-banner-logo-title "Emacs ❤️"))
+
+(use-package company
+  :ensure t
+  :config
+  (add-hook 'after-init-hook 'global-company-mode)
+  (company-quickhelp-mode))
+
 (use-package company-quickhelp :ensure t)
-(add-hook 'after-init-hook 'global-company-mode)
-(company-quickhelp-mode)
 
 (use-package which-key
+  :ensure t
   :init (which-key-mode)
   :diminish which-key-mode
   :config
-  (setq which-key-idle-delay 1))
+  (setq which-key-idle-delay 0.5))
 
 (use-package ivy
+  :ensure t
   :diminish
   :config
   (ivy-mode 1))
 
-(use-package all-the-icons)
+(use-package all-the-icons
+  :ensure t)
 
-(require 'project)
-;;(use-package projectile
-;;  :ensure t
-;;  :config
-;;  (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
-;;  (projectile-mode +1))
+(use-package yasnippet
+  :ensure t
+  :config
+  (setq yas-snippet-dirs '("~/.emacs.d29/.emacs.d/yassnippets"))
+  (yas-global-mode 1))
+
+;;(require 'project)
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+              ("s-p" . projectile-command-map)
+              ("C-c p" . projectile-command-map)))
+
+;;Recursive discovery is configured by specifying the search depth in a cons cell
+;;(setq projectile-project-search-path '("~/projects/" "~/work/" ("~/github" . 1)))
+(setq projectile-project-search-path '(("~/workspace/sources/" . 1) ))
 
 ;; The line below is needed to get svg working with treemacs. Still and issue with emacs29
 (setq image-types (cons 'svg image-types))
 
 (use-package treemacs
+  :ensure t
   :demand t
   :config
   (setq treemacs-follow-after-init t
@@ -149,6 +174,7 @@
 ;;(global-set-key [f8] 'neotree-toggle)
 
 (use-package kaolin-themes
+  :ensure t
   :config
 ;;  (load-theme 'kaolin-dark t)
   (load-theme 'kaolin-light t)
@@ -190,6 +216,7 @@
   :ensure t)
 
 (use-package magit
+  :ensure t
   :commands magit-status
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
@@ -237,7 +264,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+   '(yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
