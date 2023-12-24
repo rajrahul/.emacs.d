@@ -15,7 +15,10 @@
 
 ;; Set up the visible bell
 (setq visible-bell t)
-(set-face-attribute 'default nil :font "Fira Code" :height 110)
+
+;;(set-face-attribute 'default nil :font "Fira Code" :height 110)
+(set-face-attribute 'default nil :font "JetBrains Mono" :height 110)
+;;(set-face-attribute 'default nil :font "Inconsolata" :height 122)
 
 (column-number-mode)
 (global-display-line-numbers-mode t)
@@ -69,9 +72,11 @@
 
 ;;Load $PATH variable
 (use-package exec-path-from-shell
-  :ensure t)
+  :ensure t
+  :config
+  (exec-path-from-shell-initialize)
+  )
 
-(exec-path-from-shell-initialize)
 ;;(when (memq window-system '(mac ns x))
 ;;  (exec-path-from-shell-initialize))
 ;;Uncomment to print path
@@ -118,18 +123,23 @@
   (setq yas-snippet-dirs '("~/.emacs.d29/.emacs.d/yassnippets"))
   (yas-global-mode 1))
 
+;;Sticking to projectile for now
 ;;(require 'project)
+
+;;Projectile
+;;Recursive discovery is configured by specifying the search depth in a cons cell
+;;(setq projectile-project-search-path '("~/projects/" "~/work/" ("~/github" . 1)))
 (use-package projectile
   :ensure t
   :init
   (projectile-mode +1)
-  :bind (:map projectile-mode-map
-              ("s-p" . projectile-command-map)
-              ("C-c p" . projectile-command-map)))
+  :bind
+  (:map projectile-mode-map
+        ("s-p" . projectile-command-map)
+        ("C-c p" . projectile-command-map))
+  :config
+  (setq projectile-project-search-path '(("~/workspace/sources/" . 1) )))
 
-;;Recursive discovery is configured by specifying the search depth in a cons cell
-;;(setq projectile-project-search-path '("~/projects/" "~/work/" ("~/github" . 1)))
-(setq projectile-project-search-path '(("~/workspace/sources/" . 1) ))
 
 ;; The line below is needed to get svg working with treemacs. Still and issue with emacs29
 (setq image-types (cons 'svg image-types))
@@ -177,8 +187,9 @@
   :ensure t
   :config
 ;;  (load-theme 'kaolin-dark t)
-  (load-theme 'kaolin-light t)
-;;  (load-theme 'kaolin-valley-light t)
+;;  (load-theme 'kaolin-light t)
+;;  The best light theme below!  
+  (load-theme 'kaolin-valley-light t)
 ;;  (load-theme 'kaolin-aurora t)
 ;;  (load-theme 'kaolin-bubblegum t)
 ;;  (load-theme 'kaolin-eclipse t)
@@ -258,13 +269,68 @@
 
 (setq treesit-load-name-override-list '((js "tree-sitter-gomod" "tree-sitter-go")))
 
+
+
+;; Does not work with treesit.el which comes with emacs
+;;(require 'tree-sitter)
+;;(use-package ts-fold
+;;  :load-path "/home/rahul/workspace/emacspkgs/ts-fold")
+
+(use-package eshell-toggle
+  :ensure t
+  :custom
+  (eshell-toggle-size-fraction 3)
+  (eshell-toggle-use-projectile-root t)
+  (eshell-toggle-run-command nil)
+  (eshell-toggle-init-function #'eshell-toggle-init-ansi-term)
+  :bind
+  ("C-c t" . eshell-toggle))
+
+;;For Python LSP support install a pylsp server as shown below:
+;;sudo apt search pylsp
+;;sudo apt install python3-pylsp python3-pylsp-isort python3-pylsp-black
+
+;; Ensure eglot while editing go files
+(use-package eglot
+  :ensure t
+  :defer t
+  :hook ((go-ts-mode . eglot-ensure) (python-ts-mode . eglot-ensure)))
+
+(use-package writeroom-mode
+  :ensure t)
+
+(use-package org
+  :config
+  (setq org-startup-indented t)
+  (add-hook 'org-mode-hook #'visual-line-mode))
+
+(global-set-key "\C-cr" 'recentf)
+
+;; Not working how
+;;(use-package org-bullets
+;;  :custom
+;;  (org-bullets-bullet-list '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
+;;  (org-ellipsis "⤵")
+;;  :hook (org-mode . org-bullets-mode))
+
+;;(add-to-list 'eglot-server-programs '((go-mode go-ts-mode) .
+;;    ("gopls" :initializationOptions
+;;      (:hints (:parameterNames t
+;;               :rangeVariableTypes t
+;;               :functionTypeParameters t
+;;               :assignVariableTypes t
+;;               :compositeLiteralFields t
+;;               :compositeLiteralTypes t
+;;               :constantValues t)))))
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+   '(chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

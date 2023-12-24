@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: Curl Post 
+# key: <post
+# --
+
+#+BEGIN_SRC sh :session curl :results pp replace
+curl -s -X POST  http://127.0.0.1:10702/db/edgedb/edgeql \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "select Address{postal_code}", "variables": {}}'
+#+END_SRC
