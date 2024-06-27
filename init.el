@@ -11,6 +11,7 @@
 (setq ido-enable-flex-matching t)
 ;;(ido-mode t)
 
+
 (setq nord-uniform-mode-lines t)
 
 ;; Set up the visible bell
@@ -189,8 +190,8 @@
 ;;  (load-theme 'kaolin-dark t)
 ;;  (load-theme 'kaolin-light t)
 ;;  The best light theme below!  
-  (load-theme 'kaolin-valley-light t)
-;;  (load-theme 'kaolin-aurora t)
+;;  (load-theme 'kaolin-valley-light t)
+  (load-theme 'kaolin-aurora t)
 ;;  (load-theme 'kaolin-bubblegum t)
 ;;  (load-theme 'kaolin-eclipse t)
 ;;  (load-theme 'kaolin-galaxy t)
@@ -231,6 +232,11 @@
   :commands magit-status
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+
+(use-package gptel
+  :ensure t)
+
 
 ;; Org mode configurations
 ;;https://github.com/zzamboni/dot-emacs/blob/master/init.org
@@ -296,6 +302,15 @@
   :defer t
   :hook ((go-ts-mode . eglot-ensure) (python-ts-mode . eglot-ensure)))
 
+;; The below hack was to ensure elgot detects the right java root, doesnt work though!
+;;(with-eval-after-load 'eglot
+;;  (let ((cache
+;;         (expand-file-name (md5 (project-root (eglot--current-project)))
+;;                           (locate-user-emacs-file
+;;                            "eglot-eclipse-jdt-cache"))))
+;;    (add-to-list 'eglot-server-programs
+;;                 `(java-mode "jdtls" "-data" ,cache))))
+
 (use-package writeroom-mode
   :ensure t)
 
@@ -330,7 +345,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+   '(gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
