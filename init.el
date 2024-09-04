@@ -17,8 +17,8 @@
 ;; Set up the visible bell
 (setq visible-bell t)
 
-;;(set-face-attribute 'default nil :font "Fira Code" :height 110)
-(set-face-attribute 'default nil :font "JetBrains Mono" :height 110)
+(set-face-attribute 'default nil :font "Fira Code" :height 110)
+;;(set-face-attribute 'default nil :font "JetBrains Mono" :height 110)
 ;;(set-face-attribute 'default nil :font "Inconsolata" :height 122)
 
 (column-number-mode)
@@ -121,7 +121,7 @@
 (use-package yasnippet
   :ensure t
   :config
-  (setq yas-snippet-dirs '("~/.emacs.d29/.emacs.d/yassnippets"))
+  (setq yas-snippet-dirs '("~/.emacs.d/yassnippets"))
   (yas-global-mode 1))
 
 ;;Sticking to projectile for now
@@ -203,7 +203,9 @@
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
+  :custom
+  (doom-modeline-height 20)
+  )
 
 ;; ---- Put backup files neatly away                                                 
 (let ((backup-dir "~/tmp/emacs/backups")
@@ -302,14 +304,18 @@
   :defer t
   :hook ((go-ts-mode . eglot-ensure) (python-ts-mode . eglot-ensure)))
 
-;; The below hack was to ensure elgot detects the right java root, doesnt work though!
-;;(with-eval-after-load 'eglot
-;;  (let ((cache
-;;         (expand-file-name (md5 (project-root (eglot--current-project)))
-;;                           (locate-user-emacs-file
-;;                            "eglot-eclipse-jdt-cache"))))
-;;    (add-to-list 'eglot-server-programs
-;;                 `(java-mode "jdtls" "-data" ,cache))))
+;; JAVA LSP Support
+;; 1. Downloads : https://download.jboss.org/jbosstools/static/jdt.ls/stable/
+;; 2. Rename downloaded java-linux-x64-1.25.0-1023.vsix to '*.zip' and extract.
+;; 3. Use netbeans LSP instead of jdtls
+;; ln -s /home/rahulraj/tools/java-linux-x64-1.25.0-1023/extension/server/bin/jdtls $HOME/local/bin/jdtls
+
+(with-eval-after-load 'eglot
+  (cl-defmethod eglot-execute-command
+    (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
+    "Eclipse JDT breaks spec and replies with edits as arguments."
+    (mapc #'eglot--apply-workspace-edit arguments)))
+
 
 (use-package writeroom-mode
   :ensure t)
