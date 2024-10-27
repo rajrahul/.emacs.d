@@ -57,7 +57,7 @@
       '(("melpa" . "https://melpa.org/packages/")
 	("org" . "https://orgmode.org/elpa/")
 	("elpa" . "https://elpa.gnu.org/packages/")
-	;("melpa-stable" . "https://stable.melpa.org/packages/")
+	("melpa-stable" . "https://stable.melpa.org/packages/")
 	))
 ;;The line below is needed!
 (package-initialize)
@@ -187,11 +187,11 @@
 (use-package kaolin-themes
   :ensure t
   :config
-;;  (load-theme 'kaolin-dark t)
+  (load-theme 'kaolin-dark t)
 ;;  (load-theme 'kaolin-light t)
 ;;  The best light theme below!  
 ;;  (load-theme 'kaolin-valley-light t)
-  (load-theme 'kaolin-aurora t)
+;;  (load-theme 'kaolin-aurora t)
 ;;  (load-theme 'kaolin-bubblegum t)
 ;;  (load-theme 'kaolin-eclipse t)
 ;;  (load-theme 'kaolin-galaxy t)
@@ -236,8 +236,35 @@
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 
-(use-package gptel
+(use-package git-gutter
+  :ensure t
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (setq git-gutter:update-interval 0.02))
+
+(use-package git-gutter-fringe
+  :ensure t
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+
+;; If the below does not work use packge-install and then search for rg to install
+(use-package rg
   :ensure t)
+(rg-enable-menu)
+(global-set-key (kbd "C-c s") #'rg-menu)
+
+(use-package imenu-list
+  :ensure t)
+;;(global-set-key (kbd "C-'") #'imenu-list-smart-toggle)
+(global-set-key (kbd "C-'") #'imenu-list)
+;;(rg-enable-default-bindings)
+
+(use-package gptel
+  :ensure t
+  :bind
+  ("C-c g" . gptel-send))
 
 
 ;; Org mode configurations
@@ -273,7 +300,8 @@
    (json-mode . json-ts-mode)
    (css-mode . css-ts-mode)
    (go-mode . go-ts-mode)   
-   (python-mode . python-ts-mode)))
+   (python-mode . python-ts-mode)
+   (java-mode . java-ts-mode)))
 
 (setq treesit-load-name-override-list '((js "tree-sitter-gomod" "tree-sitter-go")))
 
@@ -304,21 +332,106 @@
   :defer t
   :hook ((go-ts-mode . eglot-ensure) (python-ts-mode . eglot-ensure)))
 
+;;Scroll the compilation window when needed
+(setq compilation-scroll-output t)
+
+(defun mvn-compile ()
+  "Traveling up the path, find build.xml file and run compile"
+  (interactive)
+  (save-buffer)
+  (with-temp-buffer
+    (while (and (not (file-exists-p "pom.xml"))
+        (not (equal "/" default-directory)))
+      (cd ".."))
+
+    (set (make-local-variable 'compile-command)
+     "mvn clean install")
+    (call-interactively 'compile)))
+
+(defun mvn-test ()
+  "Traveling up the path, find build.xml file and run compile"
+  (interactive)
+  (save-buffer)
+  (let* ((source (file-name-base buffer-file-name)))
+    (with-temp-buffer
+      (while (and (not (file-exists-p "pom.xml"))
+		  (not (equal "/" default-directory)))
+	(cd ".."))
+      (set (make-local-variable 'compile-command)
+	   (format "mvn test -Dtest=\"%s\"" source))
+      (call-interactively 'compile))))
+
+(defun java-exec ()
+  "Traveling up the path, find build.xml file and run compile"
+  (interactive)
+  (save-buffer)
+  (let* ((source (file-name-sans-extension buffer-file-name)))
+    (with-temp-buffer
+      (while (and (not (file-exists-p "pom.xml"))
+		  (not (equal "/" default-directory)))
+	(cd ".."))
+      (let* ((actual-file (string-replace default-directory "" source))
+	     (actual-file (string-replace "src/main/java/" "" actual-file))
+	     (actual-file (string-replace "/" "." actual-file)))
+	(set (make-local-variable 'compile-command)
+	     (format "mvn exec:java -Dexec.mainClass=\"%s\"" actual-file))
+	(call-interactively 'compile)))))
+
 ;; JAVA LSP Support
 ;; 1. Downloads : https://download.jboss.org/jbosstools/static/jdt.ls/stable/
 ;; 2. Rename downloaded java-linux-x64-1.25.0-1023.vsix to '*.zip' and extract.
 ;; 3. Use netbeans LSP instead of jdtls
 ;; ln -s /home/rahulraj/tools/java-linux-x64-1.25.0-1023/extension/server/bin/jdtls $HOME/local/bin/jdtls
 
+(require 'eglot)
+
+(add-to-list 'eglot-server-programs
+	     `(java-mode . ("jdtls"
+		     :initializationOptions
+		     (:settings
+		      (:java
+		       (:format
+			(:enabled t
+				  :settings
+				  (:url "file:///home/rahulraj/tools/google-java-format/eclipse-java-google-style.xml")))
+		       ;;:configuration
+		       ;;(:runtimes
+		       ;; [(:name "JavaSE-11" :path "/data/apps/jdk-11")
+		       ;;  (:name "JavaSE-17" :path "/data/apps/jdk-17")
+		       ;;  (:name "JavaSE-21" :path "/data/apps/jdk-21" :default t)])
+		       )))))
+
+(add-hook 'java-mode-hook (lambda ()
+			    (remove-hook 'eglot-connect-hook #'eglot-signal-didChangeConfiguration t)))
+
+;; NOTE: hack workspace/didChangeConfiguration
+;;(define-advice eglot-signal-didChangeConfiguration (:override (server) override)
+;;    "Send a `:workspace/didChangeConfiguration' signal to SERVER.
+;;When called interactively, use the currently active server"
+;;    (interactive (list (eglot--current-server-or-lose)))
+;;    (when-let ((settings (eglot--workspace-configuration-plist server)))
+;;      (jsonrpc-notify
+;;       server :workspace/didChangeConfiguration
+;;       (list :settings settings))))
+
+;;The below snippet is needed to ensure that eglot-code-actions are executed properly
 (with-eval-after-load 'eglot
   (cl-defmethod eglot-execute-command
     (_server (_cmd (eql java.apply.workspaceEdit)) arguments)
     "Eclipse JDT breaks spec and replies with edits as arguments."
     (mapc #'eglot--apply-workspace-edit arguments)))
 
+(use-package zig-mode :ensure t)
 
 (use-package writeroom-mode
   :ensure t)
+
+(use-package chatgpt-shell
+  :ensure t)
+
+
+(load "/home/rahulraj/Documents/keys/chatgpt-emacs/chatgpt.el")
+
 
 (use-package org
   :config
@@ -350,8 +463,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(java-ts-mode-indent-offset 2)
  '(package-selected-packages
-   '(gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+   '(eglot-java git-gutter-fringe git-gutter imenu-list rg zig-mode breadcrumb gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
