@@ -334,6 +334,7 @@
 
 ;;Scroll the compilation window when needed
 (setq compilation-scroll-output t)
+(add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
 
 (defun mvn-compile ()
   "Traveling up the path, find build.xml file and run compile"
@@ -348,10 +349,13 @@
      "mvn clean install")
     (call-interactively 'compile)))
 
-(defun mvn-test ()
+
+
+(defun mvn-test()
   "Traveling up the path, find build.xml file and run compile"
   (interactive)
   (save-buffer)
+  ;;(which-function-mode) needs to be enabled, but it works!
   (let* ((source (file-name-base buffer-file-name)))
     (with-temp-buffer
       (while (and (not (file-exists-p "pom.xml"))
@@ -359,6 +363,21 @@
 	(cd ".."))
       (set (make-local-variable 'compile-command)
 	   (format "mvn test -Dtest=\"%s\"" source))
+      (call-interactively 'compile))))
+
+(defun mvn-test-fn()
+  "Traveling up the path, find build.xml file and run compile"
+  (interactive)
+  (save-buffer)
+  ;;(which-function-mode) needs to be enabled, but it works!
+  ;;(source (file-name-base buffer-file-name))
+  (let* ((curr-fn (string-replace "." "#" (which-function))))
+    (with-temp-buffer
+      (while (and (not (file-exists-p "pom.xml"))
+		  (not (equal "/" default-directory)))
+	(cd ".."))
+      (set (make-local-variable 'compile-command)
+	   (format "mvn test -Dtest=\"%s\"" curr-fn))
       (call-interactively 'compile))))
 
 (defun java-exec ()
