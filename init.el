@@ -17,7 +17,7 @@
 ;; Set up the visible bell
 (setq visible-bell t)
 
-(set-face-attribute 'default nil :font "Fira Code" :height 110)
+(set-face-attribute 'default nil :font "Fira Code" :height 120)
 ;;(set-face-attribute 'default nil :font "JetBrains Mono" :height 110)
 ;;(set-face-attribute 'default nil :font "Inconsolata" :height 122)
 
@@ -201,11 +201,11 @@
   (kaolin-treemacs-theme)
 )
 
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom
-  (doom-modeline-height 20)
-  )
+;;(use-package doom-modeline
+;;  :init (doom-modeline-mode 1)
+;;  :custom
+;;  (doom-modeline-height 20)
+;;  )
 
 ;; ---- Put backup files neatly away                                                 
 (let ((backup-dir "~/tmp/emacs/backups")
@@ -289,6 +289,7 @@
      (yaml "https://github.com/ikatyang/tree-sitter-yaml")
      (java "https://github.com/tree-sitter/tree-sitter-java")))
 
+;;*************************************IMPORTANT!***************************************
 ;;Ensure  the langauages are available by running below
 ;;(mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
 
@@ -335,6 +336,9 @@
 ;;Scroll the compilation window when needed
 (setq compilation-scroll-output t)
 (add-hook 'compilation-finish-functions 'switch-to-buffer-other-window 'compilation)
+
+;;enable which function mode to determine the current function under the cursor
+(which-function-mode t)
 
 (defun mvn-compile ()
   "Traveling up the path, find build.xml file and run compile"
@@ -449,7 +453,7 @@
   :ensure t)
 
 
-(load "/home/rahulraj/Documents/keys/chatgpt-emacs/chatgpt.el")
+(load "~/Documents/keys/chatgpt-emacs/chatgpt.el")
 
 
 (use-package org
