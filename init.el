@@ -17,8 +17,8 @@
 ;; Set up the visible bell
 (setq visible-bell t)
 
-(set-face-attribute 'default nil :font "Fira Code" :height 120)
-;;(set-face-attribute 'default nil :font "JetBrains Mono" :height 110)
+;;(set-face-attribute 'default nil :font "Fira Code" :height 180)
+(set-face-attribute 'default nil :font "JetBrains Mono" :height 180)
 ;;(set-face-attribute 'default nil :font "Inconsolata" :height 122)
 
 (column-number-mode)
@@ -52,6 +52,10 @@
     (interactive) 
     (pulse-line)))
 
+(if (eq system-type 'darwin)
+    (progn
+      (setq mac-command-modifier 'meta)))
+
 ;;(require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
@@ -75,8 +79,7 @@
 (use-package exec-path-from-shell
   :ensure t
   :config
-  (exec-path-from-shell-initialize)
-  )
+  (exec-path-from-shell-initialize))
 
 ;;(when (memq window-system '(mac ns x))
 ;;  (exec-path-from-shell-initialize))
@@ -94,13 +97,49 @@
   (dashboard-setup-startup-hook)
   (setq dashboard-banner-logo-title "Emacs ❤️"))
 
-(use-package company
-  :ensure t
-  :config
-  (add-hook 'after-init-hook 'global-company-mode)
-  (company-quickhelp-mode))
+(use-package corfu
+  ;; Optional customizations
+  :custom
+  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+    (corfu-auto t)                 ;; Enable auto completion
+  ;; (corfu-separator ?\s)          ;; Orderless field separator
+  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
 
-(use-package company-quickhelp :ensure t)
+  :init
+  (global-corfu-mode))
+
+;; A few more useful configurations...
+(use-package emacs
+  :custom
+  ;; TAB cycle if there are only few candidates
+  ;; (completion-cycle-threshold 3)
+
+  ;; Enable indentation+completion using the TAB key.
+  ;; `completion-at-point' is often bound to M-TAB.
+  (tab-always-indent 'complete)
+
+  ;; Emacs 30 and newer: Disable Ispell completion function. As an alternative,
+  ;; try `cape-dict'.
+  (text-mode-ispell-word-completion nil)
+
+  ;; Hide commands in M-x which do not apply to the current mode.  Corfu
+  ;; commands are hidden, since they are not used via M-x. This setting is
+  ;; useful beyond Corfu.
+  (read-extended-command-predicate #'command-completion-default-include-p))
+
+;;Switched to corfu above from company
+;;(use-package company
+;;  :ensure t
+;;  :config
+;;  (add-hook 'after-init-hook 'global-company-mode)
+;;  (company-quickhelp-mode))
+;;
+;;(use-package company-quickhelp :ensure t)
 
 (use-package which-key
   :ensure t
@@ -109,11 +148,37 @@
   :config
   (setq which-key-idle-delay 0.5))
 
-(use-package ivy
+;;(use-package ivy
+;;  :ensure t
+;;  :diminish
+;;  :config
+;;  (ivy-mode 1))
+
+(use-package vertico
   :ensure t
-  :diminish
-  :config
-  (ivy-mode 1))
+  :custom
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
+
+(use-package marginalia
+  :after vertico
+  :ensure t
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  :init
+  (marginalia-mode))
+
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)  
+  (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package all-the-icons
   :ensure t)
@@ -187,10 +252,10 @@
 (use-package kaolin-themes
   :ensure t
   :config
-  (load-theme 'kaolin-dark t)
+;;  (load-theme 'kaolin-dark t)
 ;;  (load-theme 'kaolin-light t)
 ;;  The best light theme below!  
-;;  (load-theme 'kaolin-valley-light t)
+  (load-theme 'kaolin-valley-light t)
 ;;  (load-theme 'kaolin-aurora t)
 ;;  (load-theme 'kaolin-bubblegum t)
 ;;  (load-theme 'kaolin-eclipse t)
@@ -345,15 +410,10 @@
   (interactive)
   (save-buffer)
   (with-temp-buffer
-    (while (and (not (file-exists-p "pom.xml"))
-        (not (equal "/" default-directory)))
-      (cd ".."))
-
+    (cd (project-root (project-current)))
     (set (make-local-variable 'compile-command)
-     "mvn clean install")
+	 "mvn clean install")
     (call-interactively 'compile)))
-
-
 
 (defun mvn-test()
   "Traveling up the path, find build.xml file and run compile"
@@ -362,9 +422,7 @@
   ;;(which-function-mode) needs to be enabled, but it works!
   (let* ((source (file-name-base buffer-file-name)))
     (with-temp-buffer
-      (while (and (not (file-exists-p "pom.xml"))
-		  (not (equal "/" default-directory)))
-	(cd ".."))
+      (cd (project-root (project-current)))
       (set (make-local-variable 'compile-command)
 	   (format "mvn test -Dtest=\"%s\"" source))
       (call-interactively 'compile))))
@@ -373,16 +431,18 @@
   "Traveling up the path, find build.xml file and run compile"
   (interactive)
   (save-buffer)
-  ;;(which-function-mode) needs to be enabled, but it works!
-  ;;(source (file-name-base buffer-file-name))
   (let* ((curr-fn (string-replace "." "#" (which-function))))
     (with-temp-buffer
-      (while (and (not (file-exists-p "pom.xml"))
-		  (not (equal "/" default-directory)))
-	(cd ".."))
+      (cd (project-root (project-current)))
       (set (make-local-variable 'compile-command)
 	   (format "mvn test -Dtest=\"%s\"" curr-fn))
       (call-interactively 'compile))))
+
+;; The following approaches are similar
+;; (cd (project-root (project-current)))
+;; (while (and (not (file-exists-p "pom.xml"))
+;; 	  (not (equal "/" default-directory)))
+;; (cd ".."))
 
 (defun java-exec ()
   "Traveling up the path, find build.xml file and run compile"
@@ -390,11 +450,10 @@
   (save-buffer)
   (let* ((source (file-name-sans-extension buffer-file-name)))
     (with-temp-buffer
-      (while (and (not (file-exists-p "pom.xml"))
-		  (not (equal "/" default-directory)))
-	(cd ".."))
+      (cd (project-root (project-current)))
       (let* ((actual-file (string-replace default-directory "" source))
 	     (actual-file (string-replace "src/main/java/" "" actual-file))
+	     (actual-file (string-replace "src/test/java/" "" actual-file))	     
 	     (actual-file (string-replace "/" "." actual-file)))
 	(set (make-local-variable 'compile-command)
 	     (format "mvn exec:java -Dexec.mainClass=\"%s\"" actual-file))
@@ -488,7 +547,7 @@
  ;; If there is more than one, they won't work right.
  '(java-ts-mode-indent-offset 2)
  '(package-selected-packages
-   '(eglot-java git-gutter-fringe git-gutter imenu-list rg zig-mode breadcrumb gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+   '(corfu marginalia orderless vertico eglot-java git-gutter-fringe git-gutter imenu-list rg zig-mode breadcrumb gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
