@@ -19,6 +19,8 @@
 
 ;;(set-face-attribute 'default nil :font "Fira Code" :height 180)
 (set-face-attribute 'default nil :font "JetBrains Mono" :height 180)
+;;(set-face-attribute 'default nil :font "Nunito" :height 180)
+(set-face-attribute 'fixed-pitch nil :font "Nunito" :height 180)
 ;;(set-face-attribute 'default nil :font "Inconsolata" :height 122)
 
 (column-number-mode)
@@ -430,6 +432,16 @@
 (use-package eglot
   :ensure t
   :defer t
+  :custom
+  (fset #'jsonrpc--log-event #'ignore)
+  (eglot-events-buffer-size 0)
+  (eglot-sync-connect nil)
+  (eglot-connect-timeout nil)
+  (eglot-autoshutdown t)
+  (eglot-send-changes-idle-time 3)
+  (flymake-no-changes-timeout 5)
+  (eldoc-echo-area-use-multiline-p nil)
+  (setq eglot-ignored-server-capabilities '( :documentHighlightProvider))
   :hook ((go-ts-mode . eglot-ensure) (python-ts-mode . eglot-ensure)))
 
 ;;Scroll the compilation window when needed
