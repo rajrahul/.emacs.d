@@ -189,6 +189,32 @@
 ;;  :config
 ;;  (ivy-mode 1))
 
+(use-package dired
+  :ensure nil
+  :commands (dired)
+  :hook
+  ((dired-mode . dired-hide-details-mode)
+   (dired-mode . hl-line-mode))
+  :config
+  (setq dired-recursive-copies 'always)
+  (setq dired-recursive-deletes 'always)
+  (setq delete-by-moving-to-trash t)
+  (setq dired-dwim-target t))
+
+(use-package dired-subtree
+  :ensure t
+  :after dired
+  :bind
+  ( :map dired-mode-map
+    ("<tab>" . dired-subtree-toggle)
+    ("TAB" . dired-subtree-toggle)
+    ("<backtab>" . dired-subtree-remove)
+    ("S-TAB" . dired-subtree-remove))
+  :config
+  (setq dired-subtree-use-backgrounds nil))
+
+
+
 (use-package vertico
   :ensure t
   :custom
@@ -215,8 +241,32 @@
   (completion-category-defaults nil)  
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
-(use-package all-the-icons
+;;(use-package all-the-icons
+;;  :ensure t)
+
+;; To make the icons visble it might be required to install the icons with
+;; m-x nerd-icons-install-fonts
+
+(use-package nerd-icons
   :ensure t)
+
+(use-package nerd-icons-completion
+  :ensure t
+  :after marginalia
+  :config
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+(use-package nerd-icons-corfu
+  :ensure t
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+(use-package nerd-icons-dired
+  :ensure t
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
 
 (use-package yasnippet
   :ensure t
@@ -307,6 +357,10 @@
 ;;  :custom
 ;;  (doom-modeline-height 20)
 ;;  )
+
+(use-package savehist
+  :ensure nil ; it is built-in
+  :hook (after-init . savehist-mode))
 
 ;; ---- Put backup files neatly away                                                 
 (let ((backup-dir "~/tmp/emacs/backups")
@@ -440,7 +494,7 @@
   (eglot-autoshutdown t)
   (eglot-send-changes-idle-time 3)
   (flymake-no-changes-timeout 5)
-  (eldoc-echo-area-use-multiline-p nil)
+;;  (eldoc-echo-area-use-multiline-p nil)
   (setq eglot-ignored-server-capabilities '( :documentHighlightProvider))
   :hook ((go-ts-mode . eglot-ensure) (python-ts-mode . eglot-ensure)))
 
@@ -593,7 +647,7 @@
  ;; If there is more than one, they won't work right.
  '(java-ts-mode-indent-offset 2)
  '(package-selected-packages
-   '(kind-icon cape corfu marginalia orderless vertico eglot-java git-gutter-fringe git-gutter imenu-list rg zig-mode breadcrumb gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
+   '(dired-subtree nerd-icons-completion nerd-icons-dired nerd-icons-corfu nerd-icons kind-icon cape corfu marginalia orderless vertico eglot-java git-gutter-fringe git-gutter imenu-list rg zig-mode breadcrumb gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
