@@ -29,6 +29,18 @@
 (add-to-list 'load-path (concat user-emacs-directory "setup-files/"))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
+(setq custom-file (locate-user-emacs-file "custom.el"))
+(load custom-file :no-error-if-file-is-missing)
+
+
+;;The following snippet will prevent those buffers from popping up.
+;;They are still available in the buffer list, if they are needed.
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
+
+
 ;;(set-frame-parameter nil 'alpha-background 70)
 ;;(add-to-list 'default-frame-alist '(alpha-background . 70))
 
@@ -59,12 +71,15 @@
       (setq mac-command-modifier 'meta)))
 
 ;;(require 'package)
+
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
 	("org" . "https://orgmode.org/elpa/")
 	("elpa" . "https://elpa.gnu.org/packages/")
 	("melpa-stable" . "https://stable.melpa.org/packages/")
+	("nongnu" . "https://elpa.nongnu.org/nongnu/")
 	))
+
 ;;The line below is needed!
 (package-initialize)
 
@@ -88,6 +103,33 @@
 ;;Uncomment to print path
 ;;(getenv "PATH")
 
+;; eat: Emulate A Terminal (https://codeberg.org/akib/emacs-eat)
+(use-package eat
+    :preface
+    (defun my--eat-open (file)
+        "Helper function to open files from eat terminal."
+        (interactive)
+        (if (file-exists-p file)
+                (find-file-other-window file t)
+            (warn "File doesn't exist")))
+    :init
+    (add-to-list 'project-switch-commands '(eat-project "Eat terminal") t)
+    (add-to-list 'project-switch-commands '(eat-project-other-window "Eat terminal other window") t)
+    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode))
+    :config
+    (add-to-list 'eat-message-handler-alist (cons "open" 'my--eat-open))
+    (setq process-adaptive-read-buffering nil) ; makes EAT a lot quicker!
+    (setq eat-term-name "xterm-256color") ; https://codeberg.org/akib/emacs-eat/issues/119"
+    (setq eat-kill-buffer-on-exit t)
+    (setq eat-shell-prompt-annotation-failure-margin-indicator "")
+    (setq eat-shell-prompt-annotation-running-margin-indicator "")
+    (setq eat-shell-prompt-annotation-success-margin-indicator ""))
+
+(with-eval-after-load 'eat
+    (global-set-key (kbd "C-c o t") 'eat)
+    (global-set-key (kbd "C-c o T") 'eat-other-window)
+    (define-key project-prefix-map (kbd "t") 'eat-project)
+    (define-key project-prefix-map (kbd "T") 'eat-project-other-window))
 
 ;; Let the desktop background show through
 ;; (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
@@ -442,7 +484,8 @@
      (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
      (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-     (java "https://github.com/tree-sitter/tree-sitter-java")))
+     (java "https://github.com/tree-sitter/tree-sitter-java")
+     (c "https://github.com/tree-sitter/tree-sitter-c")))
 
 ;;*************************************IMPORTANT!***************************************
 ;;Ensure  the langauages are available by running below
@@ -457,7 +500,8 @@
    (css-mode . css-ts-mode)
    (go-mode . go-ts-mode)   
    (python-mode . python-ts-mode)
-   (java-mode . java-ts-mode)))
+   (java-mode . java-ts-mode)
+   (c-mode . c-ts-mode)))
 
 (setq treesit-load-name-override-list '((js "tree-sitter-gomod" "tree-sitter-go")))
 
@@ -654,3 +698,4 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(put 'narrow-to-region 'disabled nil)
