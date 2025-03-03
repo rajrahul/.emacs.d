@@ -104,26 +104,26 @@
 ;;(getenv "PATH")
 
 ;; eat: Emulate A Terminal (https://codeberg.org/akib/emacs-eat)
-(use-package eat
-    :preface
-    (defun my--eat-open (file)
-        "Helper function to open files from eat terminal."
-        (interactive)
-        (if (file-exists-p file)
-                (find-file-other-window file t)
-            (warn "File doesn't exist")))
-    :init
-    (add-to-list 'project-switch-commands '(eat-project "Eat terminal") t)
-    (add-to-list 'project-switch-commands '(eat-project-other-window "Eat terminal other window") t)
-    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode))
-    :config
-    (add-to-list 'eat-message-handler-alist (cons "open" 'my--eat-open))
-    (setq process-adaptive-read-buffering nil) ; makes EAT a lot quicker!
-    (setq eat-term-name "xterm-256color") ; https://codeberg.org/akib/emacs-eat/issues/119"
-    (setq eat-kill-buffer-on-exit t)
-    (setq eat-shell-prompt-annotation-failure-margin-indicator "")
-    (setq eat-shell-prompt-annotation-running-margin-indicator "")
-    (setq eat-shell-prompt-annotation-success-margin-indicator ""))
+;;(use-package eat
+;;    :preface
+;;    (defun my--eat-open (file)
+;;        "Helper function to open files from eat terminal."
+;;        (interactive)
+;;        (if (file-exists-p file)
+;;                (find-file-other-window file t)
+;;            (warn "File doesn't exist")))
+;;    :init
+;;    (add-to-list 'project-switch-commands '(eat-project "Eat terminal") t)
+;;    (add-to-list 'project-switch-commands '(eat-project-other-window "Eat terminal other window") t)
+;;    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode))
+;;    :config
+;;    (add-to-list 'eat-message-handler-alist (cons "open" 'my--eat-open))
+;;    (setq process-adaptive-read-buffering nil) ; makes EAT a lot quicker!
+;;    (setq eat-term-name "xterm-256color") ; https://codeberg.org/akib/emacs-eat/issues/119"
+;;    (setq eat-kill-buffer-on-exit t)
+;;    (setq eat-shell-prompt-annotation-failure-margin-indicator "")
+;;    (setq eat-shell-prompt-annotation-running-margin-indicator "")
+;;    (setq eat-shell-prompt-annotation-success-margin-indicator ""))
 
 (with-eval-after-load 'eat
     (global-set-key (kbd "C-c o t") 'eat)
@@ -383,9 +383,9 @@
 ;;  (load-theme 'kaolin-dark t)
 ;;  (load-theme 'kaolin-light t)
 ;;  The best light theme below!  
-  (load-theme 'kaolin-valley-light t)
+;;  (load-theme 'kaolin-valley-light t)
 ;;  (load-theme 'kaolin-aurora t)
-;;  (load-theme 'kaolin-bubblegum t)
+  (load-theme 'kaolin-bubblegum t)
 ;;  (load-theme 'kaolin-eclipse t)
 ;;  (load-theme 'kaolin-galaxy t)
 ;;  (load-theme 'kaolin-ocean t)
@@ -458,10 +458,21 @@
 (global-set-key (kbd "C-'") #'imenu-list)
 ;;(rg-enable-default-bindings)
 
+
+(load "~/Documents/keys/anthropic/anthropic.el")
+(setq gptel-model "claude-3-7-sonnet-20241022")  ; Latest as of late 2024; update if newer
 (use-package gptel
-  :ensure t
+  :ensure t  ; Ensures gptel is installed via package.el
   :bind
-  ("C-c g" . gptel-send))
+  ("C-c g" . gptel-send)  
+  :config
+  ;; Define Anthropic backend
+  (setq gptel-backend
+        (gptel-make-anthropic "Claude"
+          :stream t  ; Enable streaming responses
+          :key anthropic-api-key)))
+  ;; Set default model
+
 
 
 ;; Org mode configurations
