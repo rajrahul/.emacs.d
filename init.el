@@ -1,26 +1,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;; This is for emacs 29;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;; This is for emacs 29/30;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
-;;(toggle-scroll-bar -1)
+;;;(toggle-scroll-bar -1)
 (tool-bar-mode -1) ; Disable tool bar 
 (setq inhibit-splash-screen t)
 (setq ido-everywhere t)
 (setq ido-enable-flex-matching t)
 ;;(ido-mode t)
 
-
 (setq nord-uniform-mode-lines t)
 
 ;; Set up the visible bell
 (setq visible-bell t)
-
+;;(setq-default tab-width 4)
 ;;(set-face-attribute 'default nil :font "Fira Code" :height 180)
-(set-face-attribute 'default nil :font "JetBrains Mono" :height 180)
+;;(set-face-attribute 'default nil :font "IBM Plex Mono" :height 180)
+;;(set-face-attribute 'default nil :font "JetBrains Mono" :height 180)
 ;;(set-face-attribute 'default nil :font "Nunito" :height 180)
-(set-face-attribute 'fixed-pitch nil :font "Nunito" :height 180)
+;;(set-face-attribute 'fixed-pitch nil :font "Nunito" :height 180)
 ;;(set-face-attribute 'default nil :font "Inconsolata" :height 122)
 
 (column-number-mode)
@@ -32,9 +31,8 @@
 (setq custom-file (locate-user-emacs-file "custom.el"))
 (load custom-file :no-error-if-file-is-missing)
 
-
-;;The following snippet will prevent those buffers from popping up.
-;;They are still available in the buffer list, if they are needed.
+;;;The following snippet will prevent those buffers from popping up.
+;;;They are still available in the buffer list, if they are needed.
 (add-to-list 'display-buffer-alist
              '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
                (display-buffer-no-window)
@@ -91,7 +89,6 @@
 
 (require 'use-package)
 
-
 ;;Load $PATH variable
 (use-package exec-path-from-shell
   :ensure t
@@ -125,11 +122,11 @@
 ;;    (setq eat-shell-prompt-annotation-running-margin-indicator "")
 ;;    (setq eat-shell-prompt-annotation-success-margin-indicator ""))
 
-(with-eval-after-load 'eat
-    (global-set-key (kbd "C-c o t") 'eat)
-    (global-set-key (kbd "C-c o T") 'eat-other-window)
-    (define-key project-prefix-map (kbd "t") 'eat-project)
-    (define-key project-prefix-map (kbd "T") 'eat-project-other-window))
+;;(with-eval-after-load 'eat
+;;    (global-set-key (kbd "C-c o t") 'eat)
+;;    (global-set-key (kbd "C-c o T") 'eat-other-window)
+;;    (define-key project-prefix-map (kbd "t") 'eat-project)
+;;    (define-key project-prefix-map (kbd "T") 'eat-project-other-window))
 
 ;; Let the desktop background show through
 ;; (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
@@ -198,7 +195,7 @@
 
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
-  (tab-always-indent 'complete)
+  ;;(tab-always-indent 'complete)
 
   ;; Emacs 30 and newer: Disable Ispell completion function. As an alternative,
   ;; try `cape-dict'.
@@ -217,6 +214,39 @@
 ;;  (company-quickhelp-mode))
 ;;
 ;;(use-package company-quickhelp :ensure t)
+
+(use-package ace-window
+  :ensure t
+  :bind (("M-o" . ace-window)) ;; Override default window switch
+  :config
+  ;; Customize key labels for window selection
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  ;; Set scope to visible frames
+  (setq aw-scope 'frame)
+  ;; Show dispatch menu with '?'
+  (setq aw-dispatch-always t)
+  ;; Customize face for labels
+  (set-face-attribute 'aw-leading-char-face nil
+                      :foreground "white"
+                      :background "red"
+                      :weight bold
+                      :height 1.2)
+  ;; Optional: Enable dispatch actions without modifier
+  (setq aw-dispatch-alist
+        '((?x aw-delete-window "Delete Window")
+          (?m aw-swap-window "Swap Windows")
+          (?M aw-move-window "Move Window")
+          (?c aw-copy-window "Copy Window")
+          (?j aw-switch-buffer-in-window "Select Buffer")
+          (?n aw-flip-window)
+          (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
+          (?f aw-split-window-fair "Split Fair Window")
+          (?v aw-split-window-vert "Split Vert Window")
+          (?h aw-split-window-horz "Split Horz Window")
+          (?o delete-other-windows "Delete Other Windows")
+          (?t aw-transpose-frame "Transpose Frame")))
+  ;; Reduce distraction by minimizing background dimming
+  (setq aw-background nil))
 
 (use-package which-key
   :ensure t
@@ -254,8 +284,6 @@
     ("S-TAB" . dired-subtree-remove))
   :config
   (setq dired-subtree-use-backgrounds nil))
-
-
 
 (use-package vertico
   :ensure t
@@ -377,22 +405,98 @@
 ;;(require 'neotree)
 ;;(global-set-key [f8] 'neotree-toggle)
 
-(use-package kaolin-themes
+;; In all of the following, WEIGHT is a symbol such as `semibold',
+;; `light', `bold', or anything mentioned in `modus-themes-weights'.
+;;(setq modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted))
+
+;;(load-theme 'modus-operandi t)
+;;(load-theme 'modus-operandi-tinted t)
+;;(load-theme 'modus-operandi-tritanopia t)
+;;(load-theme 'modus-operandi-deuteranopia t)
+;;(load-theme 'modus-vivendi t)
+;;(load-theme 'modus-vivendi-tinted t)
+;;(load-theme 'modus-vivendi-tritanopia t)
+;;(load-theme 'modus-vivendi-deuteranopia t)
+
+(use-package ef-themes
   :ensure t
   :config
+  (setq ef-themes-to-toggle '(ef-maris-light ef-maris-dark))
+  ;; Load a specific ef-theme (e.g., ef-summer). Replace with your preferred theme.
+  (load-theme 'ef-maris-dark t)
+  ;; Optionally, set up a keybinding to cycle through ef-themes
+  (global-set-key (kbd "C-c t") #'ef-themes-select)
+  ;; Enable theme cycling with a transient menu (optional)
+  )
+
+(use-package fontaine
+  :ensure t
+  :config
+  ;; Define font presets
+  (setq fontaine-presets
+        '((regular
+           :default-family "JetBrains Mono"
+           :default-weight normal
+           :default-height 140
+           :fixed-pitch-family "JetBrains Mono"
+           :variable-pitch-family "Fira Sans"
+           :variable-pitch-height 1.05
+           :bold-weight bold
+           :italic-slant italic
+           :line-number-height 0.9)
+          (large
+           :default-family "JetBrains Mono"
+           :default-weight semilight
+           :default-height 180
+           :fixed-pitch-family "JetBrains Mono"
+           :variable-pitch-family "Source Sans Pro"
+           :variable-pitch-height 1.05
+           :bold-weight bold
+           :italic-slant italic
+           :mode-line-active-height 0.9
+           :mode-line-inactive-height 0.9)
+          (presentation
+           :default-family "Iosevka"
+           :default-weight semilight
+           :default-height 220
+           :fixed-pitch-family "Iosevka"
+           :variable-pitch-family "Fira Sans"
+           :variable-pitch-height 1.1
+           :bold-weight extrabold
+           :italic-slant italic)
+          (t
+           :default-family "Monospace"
+           :default-weight regular
+           :default-height 100
+           :fixed-pitch-family nil
+           :variable-pitch-family "Sans"
+           :variable-pitch-height 1.0
+           :bold-weight bold
+           :italic-slant italic)))
+  ;; Set default preset at startup
+  (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))
+  ;; Enable fontaine-mode to persist presets
+  (fontaine-mode 1)
+  ;; Persist font settings when switching themes
+  (dolist (hook '(modus-themes-after-load-theme-hook ef-themes-post-load-hook))
+    (add-hook hook #'fontaine-apply-current-preset)))
+
+;;(use-package kaolin-themes
+;;  :ensure t
+;;  :config
 ;;  (load-theme 'kaolin-dark t)
 ;;  (load-theme 'kaolin-light t)
 ;;  The best light theme below!  
 ;;  (load-theme 'kaolin-valley-light t)
 ;;  (load-theme 'kaolin-aurora t)
-  (load-theme 'kaolin-bubblegum t)
+;;  (load-theme 'kaolin-bubblegum t)
 ;;  (load-theme 'kaolin-eclipse t)
 ;;  (load-theme 'kaolin-galaxy t)
 ;;  (load-theme 'kaolin-ocean t)
 ;;  (load-theme 'kaolin-temple t)
 ;;  (load-theme 'kaolin-valley-dark t)
-  (kaolin-treemacs-theme)
-)
+;;  (kaolin-treemacs-theme)
+;;)
 
 ;;(use-package doom-modeline
 ;;  :init (doom-modeline-mode 1)
@@ -458,6 +562,10 @@
 (global-set-key (kbd "C-'") #'imenu-list)
 ;;(rg-enable-default-bindings)
 
+(use-package editorconfig
+  :ensure t
+  :config
+  (editorconfig-mode 1))
 
 (load "~/Documents/keys/anthropic/anthropic.el")
 (setq gptel-model "claude-3-7-sonnet-20241022")  ; Latest as of late 2024; update if newer
@@ -502,6 +610,9 @@
 ;;Ensure  the langauages are available by running below
 ;;(mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
 
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+
 (setq major-mode-remap-alist
  '((yaml-mode . yaml-ts-mode)
    (bash-mode . bash-ts-mode)
@@ -541,6 +652,14 @@
 (use-package eglot
   :ensure t
   :defer t
+  :bind (:map eglot-mode-map
+	      ("C-x l a" . eglot-code-actions)
+	      ("C-x l r" . eglot-rename)
+	      ("C-x l h" . eldoc)
+	      ("C-x l f" . eglot-format)
+	      ("C-x l F" . eglot-format-buffer)
+	      ("C-x l d" . xref-find-definitions-at-mouse)
+	      ("C-x l R" . eglot-reconnect))
   :custom
   (fset #'jsonrpc--log-event #'ignore)
   (eglot-events-buffer-size 0)
@@ -551,7 +670,10 @@
   (flymake-no-changes-timeout 5)
 ;;  (eldoc-echo-area-use-multiline-p nil)
   (setq eglot-ignored-server-capabilities '( :documentHighlightProvider))
-  :hook ((go-ts-mode . eglot-ensure) (python-ts-mode . eglot-ensure)))
+  :hook (
+	 (go-ts-mode . eglot-ensure)
+	 (python-ts-mode . eglot-ensure))
+  )
 
 ;;Scroll the compilation window when needed
 (setq compilation-scroll-output t)
@@ -700,7 +822,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(java-ts-mode-indent-offset 2)
+ ;;'(java-ts-mode-indent-offset 2)
  '(package-selected-packages
    '(dired-subtree nerd-icons-completion nerd-icons-dired nerd-icons-corfu nerd-icons kind-icon cape corfu marginalia orderless vertico eglot-java git-gutter-fringe git-gutter imenu-list rg zig-mode breadcrumb gptel eglot chatgpt-shell writeroom-mode ts-fold eshell-toggle yasnippet projectile company-quickhelp company magit treemacs doom-modeline kaolin-themes all-the-icons ivy which-key flycheck exec-path-from-shell)))
 (custom-set-faces
