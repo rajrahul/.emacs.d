@@ -752,7 +752,14 @@
 		       (:format
 			(:enabled t
 				  :settings
-				  (:url "file:///home/rahulraj/tools/google-java-format/eclipse-java-google-style.xml")))
+				  (:url "file:///home/rahulraj/tools/google-java-format/eclipse-java-google-style.xml"))
+                        :sources
+                        (:organizeImports (:enabled t))
+                        :reference (:includeDecompiled t)
+                        :implementationsCodeLens (:enabled t)
+                        :referencesCodeLens (:enabled t)
+                        :signatureHelp (:enabled t)
+			)
 		       ;;:configuration
 		       ;;(:runtimes
 		       ;; [(:name "JavaSE-11" :path "/data/apps/jdk-11")
@@ -781,6 +788,18 @@
     (mapc #'eglot--apply-workspace-edit arguments)))
 
 (use-package zig-mode :ensure t)
+
+(use-package vterm :ensure t)
+
+;;(use-package combobulate
+;;   :custom
+;;   ;; You can customize Combobulate's key prefix here.
+;;   ;; Note that you may have to restart Emacs for this to take effect!
+;;   (combobulate-key-prefix "C-c o")
+;;   :hook ((prog-mode . combobulate-mode))
+;;   ;; Amend this to the directory where you keep Combobulate's source
+;;   ;; code.
+;;   :load-path ("~/.emacs.d/combobulate"))
 
 (use-package writeroom-mode
   :ensure t)
