@@ -744,28 +744,49 @@
 
 (require 'eglot)
 
-(add-to-list 'eglot-server-programs
-	     `(java-mode . ("jdtls"
-		     :initializationOptions
-		     (:settings
-		      (:java
-		       (:format
-			(:enabled t
-				  :settings
-				  (:url "file:///home/rahulraj/tools/google-java-format/eclipse-java-google-style.xml"))
-                        :sources
-                        (:organizeImports (:enabled t))
-                        :reference (:includeDecompiled t)
-                        :implementationsCodeLens (:enabled t)
-                        :referencesCodeLens (:enabled t)
-                        :signatureHelp (:enabled t)
-			)
-		       ;;:configuration
-		       ;;(:runtimes
-		       ;; [(:name "JavaSE-11" :path "/data/apps/jdk-11")
-		       ;;  (:name "JavaSE-17" :path "/data/apps/jdk-17")
-		       ;;  (:name "JavaSE-21" :path "/data/apps/jdk-21" :default t)])
-		       )))))
+;; Clean jdt:// URI handler that caches decompiled sources
+(defun rr/jdt-file-name-handler (operation &rest args)
+  "Support Eclipse jdtls `jdt://' uri scheme."
+  (let* ((uri (car args))
+         (cache-dir "/tmp/.eglot")
+         (source-file
+          (expand-file-name
+           (file-name-concat
+            cache-dir
+            (save-match-data
+              (when (string-match "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?" uri)
+                (format "%s.java" (replace-regexp-in-string "/" "." (match-string 2 uri) t t))))))))
+    (unless (file-readable-p source-file)
+      (let ((content (jsonrpc-request (eglot-current-server) :java/classFileContents (list :uri uri)))
+            (metadata-file (format "%s.%s.metadata"
+                                   (file-name-directory source-file)
+                                   (file-name-base source-file))))
+        (unless (file-directory-p cache-dir) (make-directory cache-dir t))
+        (with-temp-file source-file (insert content))
+        (with-temp-file metadata-file (insert uri))))
+    source-file))
+
+(add-to-list 'file-name-handler-alist '("\\`jdt://" . rr/jdt-file-name-handler))
+
+;; Configure eglot for Java with proper initialization options
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               `((java-mode java-ts-mode) .
+                 ("jdtls"
+                  "-data" ,(expand-file-name "~/.cache/jdtls-workspace/")
+                  :initializationOptions
+                  (:extendedClientCapabilities (:classFileContentsSupport t)
+                   :settings
+                   (:java
+                    (:format
+                     (:enabled t
+                      :settings (:url "file:///home/rahulraj/tools/google-java-format/eclipse-java-google-style.xml"))
+                     :sources (:organizeImports (:enabled t))
+                     :maven (:downloadSources t)
+                     :eclipse (:downloadSources t)
+                     :configuration (:maven (:userSettings ,(expand-file-name "~/.m2/settings.xml")))
+                     :import (:maven (:enabled t))
+                     :autobuild (:enabled t))))))))
 
 (add-hook 'java-mode-hook (lambda ()
 			    (remove-hook 'eglot-connect-hook #'eglot-signal-didChangeConfiguration t)))
