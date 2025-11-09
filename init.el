@@ -95,42 +95,70 @@
   :config
   (exec-path-from-shell-initialize))
 
+(setq desktop-path '("~/emacs_save/"))
+(desktop-save-mode 1)
+
 ;;(when (memq window-system '(mac ns x))
 ;;  (exec-path-from-shell-initialize))
 ;;Uncomment to print path
 ;;(getenv "PATH")
 
 ;; eat: Emulate A Terminal (https://codeberg.org/akib/emacs-eat)
-;;(use-package eat
-;;    :preface
-;;    (defun my--eat-open (file)
-;;        "Helper function to open files from eat terminal."
-;;        (interactive)
-;;        (if (file-exists-p file)
-;;                (find-file-other-window file t)
-;;            (warn "File doesn't exist")))
-;;    :init
-;;    (add-to-list 'project-switch-commands '(eat-project "Eat terminal") t)
-;;    (add-to-list 'project-switch-commands '(eat-project-other-window "Eat terminal other window") t)
-;;    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode))
-;;    :config
-;;    (add-to-list 'eat-message-handler-alist (cons "open" 'my--eat-open))
-;;    (setq process-adaptive-read-buffering nil) ; makes EAT a lot quicker!
-;;    (setq eat-term-name "xterm-256color") ; https://codeberg.org/akib/emacs-eat/issues/119"
-;;    (setq eat-kill-buffer-on-exit t)
-;;    (setq eat-shell-prompt-annotation-failure-margin-indicator "")
-;;    (setq eat-shell-prompt-annotation-running-margin-indicator "")
-;;    (setq eat-shell-prompt-annotation-success-margin-indicator ""))
+(use-package eat
+    :preface
+    (defun my--eat-open (file)
+        "Helper function to open files from eat terminal."
+        (interactive)
+        (if (file-exists-p file)
+                (find-file-other-window file t)
+            (warn "File doesn't exist")))
+    :init
+    (add-to-list 'project-switch-commands '(eat-project "Eat terminal") t)
+    (add-to-list 'project-switch-commands '(eat-project-other-window "Eat terminal other window") t)
+    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode))
+    :config
+    (add-to-list 'eat-message-handler-alist (cons "open" 'my--eat-open))
+    (setq process-adaptive-read-buffering nil) ; makes EAT a lot quicker!
+    (setq eat-term-name "xterm-256color") ; https://codeberg.org/akib/emacs-eat/issues/119"
+    (setq eat-kill-buffer-on-exit t)
+    (setq eat-shell-prompt-annotation-failure-margin-indicator "")
+    (setq eat-shell-prompt-annotation-running-margin-indicator "")
+    (setq eat-shell-prompt-annotation-success-margin-indicator "")
+    ;; Performance optimizations to reduce flickering
+    (setq eat-enable-blinking-text nil)  ; Prevent blinking cursor/text redraws
+    (setq eat-enable-alternative-display t)  ; Better screen management
+    (setq eat-maximum-latency 0.1)  ; Reduce input latency from default 0.2
+    ;; Optimize scrolling behavior
+    (add-hook 'eat-mode-hook
+              (lambda ()
+                (setq-local scroll-margin 0)  ; Reduce scroll-triggered redraws
+                (setq-local scroll-conservatively 101)))  ; Smoother scrolling
+    ;; Disable transparency in eat buffers to reduce redraw overhead
+    (add-hook 'eat-mode-hook
+              (lambda ()
+                (set-frame-parameter (selected-frame) 'alpha '(100 . 100))))
+    ;; Fix Claude Code status line flickering by ensuring consistent line height
+    (add-hook 'eat-mode-hook
+              (lambda ()
+                (setq-local line-spacing 0)  ; Fixed line spacing
+                (setq-local default-text-properties '(line-height 1.0))  ; Consistent line height
+                (face-remap-add-relative 'default :height 1.0))))
 
-;;(with-eval-after-load 'eat
-;;    (global-set-key (kbd "C-c o t") 'eat)
-;;    (global-set-key (kbd "C-c o T") 'eat-other-window)
-;;    (define-key project-prefix-map (kbd "t") 'eat-project)
-;;    (define-key project-prefix-map (kbd "T") 'eat-project-other-window))
+(with-eval-after-load 'eat
+    (global-set-key (kbd "C-c o t") 'eat)
+    (global-set-key (kbd "C-c o T") 'eat-other-window)
+    (define-key project-prefix-map (kbd "t") 'eat-project)
+    (define-key project-prefix-map (kbd "T") 'eat-project-other-window))
 
 ;; Let the desktop background show through
 ;; (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
 ;; (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
+
+(use-package undo-fu
+  :config
+  (global-unset-key (kbd "C-z"))
+  (global-set-key (kbd "C-z")   'undo-fu-only-undo)
+  (global-set-key (kbd "C-S-z") 'undo-fu-only-redo))
 
 (use-package dashboard
   :ensure t
