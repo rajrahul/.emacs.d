@@ -378,60 +378,63 @@
 ;;Projectile
 ;;Recursive discovery is configured by specifying the search depth in a cons cell
 ;;(setq projectile-project-search-path '("~/projects/" "~/work/" ("~/github" . 1)))
-(use-package projectile
-  :ensure t
-  :init
-  (projectile-mode +1)
-  :bind
-  (:map projectile-mode-map
-        ("s-p" . projectile-command-map)
-;;        ("C-c p" . projectile-command-map)
-	)
-  :config
-  (setq projectile-project-search-path '(("~/workspace/sources/" . 1) )))
-
+;;(use-package projectile
+;;  :ensure t
+;;  :init
+;;  (projectile-mode +1)
+;;  :bind
+;;  (:map projectile-mode-map
+;;        ("s-p" . projectile-command-map)
+;;;;        ("C-c p" . projectile-command-map)
+;;	)
+;;  :config
+;;  (setq projectile-project-search-path '(("~/workspace/sources/" . 1) )))
 
 ;; The line below is needed to get svg working with treemacs. Still and issue with emacs29
 (setq image-types (cons 'svg image-types))
 
-(use-package treemacs
+(use-package dirvish
   :ensure t
-  :demand t
-  :config
-  (setq treemacs-follow-after-init t
-        treemacs-width 30
-	treemacs-width-increment 1
-        treemacs-indentation 1
-        treemacs-follow-after-init t
-        treemacs-recenter-after-file-follow nil
-        treemacs-silent-refresh t
-        treemacs-silent-filewatch t
-        treemacs-change-root-without-asking t
-        treemacs-sorting 'alphabetic-desc
-        treemacs-show-hidden-files t
-        treemacs-never-persist nil
-	;; Do not add treemacs as part of window cycles
-        treemacs-is-never-other-window t
-        ;;treemacs-indentation-string (propertize " ⫶ " 'face 'font-lock-comment-face)
-	)
-  
-  ;;	(setq treemacs-follow-after-init t
-  ;;				treemacs-is-never-other-window t
-  ;;				treemacs-width 20)
-  (treemacs-follow-mode t)
-  (treemacs-filewatch-mode t)
-  (treemacs-git-mode 'simple)
-  (treemacs-fringe-indicator-mode t)
-;;  :hook (after-init . treemacs)
-  :bind
-  (:map global-map
-	([f8]   . treemacs)
-	("C-<f8>" . treemacs-select-window))
-)
+  :after nerd-icons
+  :init
+  ;; Replace all Dired calls with Dirvish globally
+  (dirvish-override-dired-mode)
 
-;;(use-package neotree)
-;;(require 'neotree)
-;;(global-set-key [f8] 'neotree-toggle)
+  :custom
+  ;; Attributes to show in file list
+  (dirvish-attributes
+   '(nerd-icons file-size file-time collapse subtree-state))
+
+  ;; Use `fd` instead of `find` for speed (requires `fd` installed)
+  (dirvish-fd-default-switches "-H -L -E .git")
+
+  ;; Enable image thumbnails (requires imagemagick, ffmpegthumbnailer, etc.)
+  (image-dired-show-all-from-dir t)
+
+  ;; Preview dispatchers: enable rich previews
+  (dirvish-preview-dispatchers
+   '(image video audio pdf epub archive))
+
+  :config
+  ;; Auto-reload directories when files change
+  (add-hook 'dired-mode-hook #'auto-revert-mode)
+
+  ;; Optional: Better default layout
+  (dirvish-peek-mode)  ; Preview on hover (lightweight)
+
+  ;; ──────────────────────────────────────
+  ;;  KEYBINDINGS
+  ;; ──────────────────────────────────────
+  (global-set-key (kbd "C-c d") #'dirvish-side)           ; Open Dirvish
+  (global-set-key (kbd "C-x d") #'dirvish)           ; Replace dired
+  (global-set-key (kbd "C-x C-d") #'dirvish-dwim)    ; Smart: file or dir
+
+  ;; In Dirvish: TAB toggles fullscreen preview
+  (define-key dirvish-mode-map (kbd "TAB") #'dirvish-toggle-fullscreen)
+  (define-key dirvish-mode-map (kbd "q") #'dirvish-quit)
+
+  ;; Optional: Use 'SPC' to quick-look (peek)
+  (define-key dirvish-mode-map (kbd "SPC") #'dirvish-quick-peek))
 
 ;; In all of the following, WEIGHT is a symbol such as `semibold',
 ;; `light', `bold', or anything mentioned in `modus-themes-weights'.
