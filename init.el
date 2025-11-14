@@ -655,7 +655,20 @@
 
 (setq treesit-load-name-override-list '((js "tree-sitter-gomod" "tree-sitter-go")))
 
-
+(use-package fzf
+  :bind
+    ;; Don't forget to set keybinds!
+  :config
+  (setq fzf/args "-x --color bw --print-query --margin=1,0 --no-hscroll"
+        fzf/executable "fzf"
+        fzf/git-grep-args "-i --line-number %s"
+        ;; command used for `fzf-grep-*` functions
+        ;; example usage for ripgrep:
+        ;; fzf/grep-command "rg --no-heading -nH"
+        fzf/grep-command "grep -nrH"
+        ;; If nil, the fzf buffer will appear at the top of the window
+        fzf/position-bottom t
+        fzf/window-height 15))
 
 ;; Does not work with treesit.el which comes with emacs
 ;;(require 'tree-sitter)
@@ -836,28 +849,112 @@
     "Eclipse JDT breaks spec and replies with edits as arguments."
     (mapc #'eglot--apply-workspace-edit arguments)))
 
+(use-package gotest :ensure t)
+
 (use-package zig-mode :ensure t)
 
 (use-package vterm :ensure t)
 
+(use-package dape
+  :ensure t
+  :init
+  (setq
+   ;; Performance tweaks
+   gc-cons-threshold 80000000
+
+   dape-buffer-window-arrangement 'right
+   dape-inlay-hints-variable-name-max 50
+   dape-inlay-hints nil
+
+   ;; TODO try using :autoport instead of 55878
+   dape-configs
+   '(
+     (go-test
+      modes (go-mode go-ts-mode)
+      command "dlv"
+      command-args ("dap" "--listen" "127.0.0.1:55878")
+      command-cwd default-directory
+      host "127.0.0.1"
+      port 55878
+      :name "Run the go tests in cwd"
+      :request "launch"
+      :mode "test"
+      :type "go"
+      :program "."
+      )
+
+     (go-run-main
+      modes (go-mode go-ts-mode)
+      command "dlv"
+      command-args ("dap" "--listen" "127.0.0.1:55878")
+      command-cwd (project-root (project-current))
+      host "127.0.0.1"
+      port 55878
+      :name "Run main.go with --localtest"
+      :request "launch"
+      :mode "debug"
+      :type "go"
+      :program "main.go"
+      :args ["-localtest"]
+      )
+
+     (go-devspace
+      modes (go-mode go-ts-mode)
+      host "127.0.0.1"
+      port 2345
+      prefix-local (lambda () default-directory)
+      prefix-remote "/workspace/"
+      :name "Debug remote in devspace pod"
+      :request "attach"
+      :mode "remote"
+      :type "go"
+      command "dlv"
+      command-args ("connect" "127.0.0.1:2345")
+      )
+
+     (go-attach
+      host "127.0.0.1"
+      ;; This is the port exposed in this command:
+      ;;
+      ;; attach $(lsof -i TCP -s TCP:LISTEN -nP | awk '/:3000/ { print $2 }') --headless --listen=127.0.0.1:5005
+      ;; dlv attach 68436 --headless --listen=127.0.0.1:38697 --accept-multiclient --api-version=2 --log
+      port 5005
+      :name "Attach to running Go process"
+      :modes (go-mode go-ts-mode)
+      :type "go"
+      :request "attach"
+      :mode "remote"
+      :cwd (project-root (project-current))
+      command "dlv"
+      command-args ("connect" "127.0.0.1:5005")
+      )
+     ))
+
+  (global-set-key [f7] 'dape-step-in)
+  (global-set-key [f8] 'dape-next)
+  (global-set-key [f9] 'dape-continue)
+  )
+
+
+;; Commentint claude integration - has glitches
 
 ;; install required inheritenv dependency:
-(use-package inheritenv
-  :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
+;;(use-package inheritenv
+;;  :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
 
-(use-package claude-code :ensure t
-  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
-  :config
-  ;; optional IDE integration with Monet
-  ;;(add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
-  ;;(monet-mode 1)
-
-  (claude-code-mode)
-  :bind-keymap ("C-c c" . claude-code-command-map)
-
-  ;; Optionally define a repeat map so that "M" will cycle thru Claude auto-accept/plan/confirm modes after invoking claude-code-cycle-mode / C-c M.
-  :bind
-  (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode)))
+;; (use-package claude-code :ensure t
+;;  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+;;  :config
+;;  ;; optional IDE integration with Monet
+;;  ;;(add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
+;;  ;;(monet-mode 1)
+;;
+;;  (claude-code-mode)
+;;  :bind-keymap ("C-c c" . claude-code-command-map)
+;;
+;;  ;; Optionally define a repeat map so that "M" will cycle thru Claude auto-accept/plan/confirm modes after invoking claude-code-cycle-mode / C-c M.
+;;  :bind
+;;  (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode)))
 
 
 ;;(use-package combobulate
