@@ -360,10 +360,11 @@
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
-(use-package nerd-icons-dired
-  :ensure t
-  :hook
-  (dired-mode . nerd-icons-dired-mode))
+;; Disabled: dirvish already handles icons via nerd-icons attribute
+;; (use-package nerd-icons-dired
+;;   :ensure t
+;;   :hook
+;;   (dired-mode . nerd-icons-dired-mode))
 
 
 (use-package yasnippet
@@ -390,8 +391,12 @@
 ;;  :config
 ;;  (setq projectile-project-search-path '(("~/workspace/sources/" . 1) )))
 
-;; The line below is needed to get svg working with treemacs. Still and issue with emacs29
-(setq image-types (cons 'svg image-types))
+
+(setq dirvish-use-all-the-icons nil)
+
+(use-package nerd-icons
+  :ensure t
+  :if (display-graphic-p))
 
 (use-package dirvish
   :ensure t
@@ -405,35 +410,36 @@
   (dirvish-attributes
    '(nerd-icons file-size file-time collapse subtree-state))
 
-  ;; Use `fd` instead of `find` for speed (requires `fd` installed)
+  ;; Use `fd` instead of `find` for speed
   (dirvish-fd-default-switches "-H -L -E .git")
 
-  ;; Enable image thumbnails (requires imagemagick, ffmpegthumbnailer, etc.)
+  ;; Enable image thumbnails
   (image-dired-show-all-from-dir t)
 
-  ;; Preview dispatchers: enable rich previews
+  ;; Preview dispatchers: rich previews
   (dirvish-preview-dispatchers
    '(image video audio pdf epub archive))
 
   :config
-  ;; Auto-reload directories when files change
+  ;; Prevent double icons (critical!)
+  (setq dirvish-use-all-the-icons nil)
+
+  ;; Auto-reload on file changes
   (add-hook 'dired-mode-hook #'auto-revert-mode)
 
-  ;; Optional: Better default layout
-  (dirvish-peek-mode)  ; Preview on hover (lightweight)
+  ;; Lightweight hover preview
+  (dirvish-peek-mode)
 
   ;; ──────────────────────────────────────
-  ;;  KEYBINDINGS
+  ;; KEYBINDINGS
   ;; ──────────────────────────────────────
-  (global-set-key (kbd "C-c d") #'dirvish-side)           ; Open Dirvish
-  (global-set-key (kbd "C-x d") #'dirvish)           ; Replace dired
-  (global-set-key (kbd "C-x C-d") #'dirvish-dwim)    ; Smart: file or dir
+  (global-set-key (kbd "C-c d") #'dirvish-side)     ; Sidebar
+  (global-set-key (kbd "C-x d") #'dirvish)          ; Full Dirvish
+  (global-set-key (kbd "C-x C-d") #'dirvish-dwim)   ; Smart open
 
-  ;; In Dirvish: TAB toggles fullscreen preview
+  ;; In Dirvish buffers
   (define-key dirvish-mode-map (kbd "TAB") #'dirvish-toggle-fullscreen)
-  (define-key dirvish-mode-map (kbd "q") #'dirvish-quit)
-
-  ;; Optional: Use 'SPC' to quick-look (peek)
+  (define-key dirvish-mode-map (kbd "q")   #'dirvish-quit)
   (define-key dirvish-mode-map (kbd "SPC") #'dirvish-quick-peek))
 
 ;; In all of the following, WEIGHT is a symbol such as `semibold',
