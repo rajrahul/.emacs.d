@@ -95,9 +95,6 @@
   :config
   (exec-path-from-shell-initialize))
 
-(setq desktop-path '("~/emacs_save/"))
-(desktop-save-mode 1)
-
 ;;(when (memq window-system '(mac ns x))
 ;;  (exec-path-from-shell-initialize))
 ;;Uncomment to print path
@@ -317,12 +314,34 @@
   :ensure t
   :custom
   (vertico-cycle t)
+  (vertico-resize nil)  ; Disable resize to prevent screen jumps
+  (vertico-count 15)
+  (vertico-scroll-margin 0)
+  :bind (:map vertico-map
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)
+              ("C-f" . vertico-exit)
+              :map minibuffer-local-map
+              ("M-h" . backward-kill-word))
+  :custom-face
+  (vertico-current ((t (:background "#3a3f5a"))))
   :init
-  (vertico-mode))
+  (vertico-mode)
 
-(use-package savehist
-  :init
-  (savehist-mode))
+  ;; Enable vertico-directory for better path handling
+  (with-eval-after-load 'vertico
+    (require 'vertico-directory)
+    ;; Tidy shadowed file names - removes the path before // or ~
+    (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+
+    ;; Configure vertico-directory keybindings
+    (define-key vertico-map (kbd "RET") #'vertico-directory-enter)
+    (define-key vertico-map (kbd "DEL") #'vertico-directory-delete-char)
+    (define-key vertico-map (kbd "M-DEL") #'vertico-directory-delete-word)))
+
+;; Minibuffer display stability settings
+(setq resize-mini-windows 'grow-only)  ; Allow growth but prevent shrinking during completion
+(setq max-mini-window-height 0.3)      ; Limit minibuffer to 30% of frame height
 
 (use-package marginalia
   :after vertico
@@ -336,8 +355,101 @@
   :ensure t
   :custom
   (completion-styles '(orderless basic))
-  (completion-category-defaults nil)  
+  (completion-category-defaults nil)
   (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package consult
+  :ensure t
+  :bind (;; C-c bindings (mode-specific-map)
+         ("C-c h" . consult-history)
+         ("C-c m" . consult-mode-command)
+         ("C-c k" . consult-kmacro)
+         ;; C-x bindings (ctl-x-map)
+         ("C-x M-:" . consult-complex-command)
+         ("C-x b" . consult-buffer)
+         ("C-x 4 b" . consult-buffer-other-window)
+         ("C-x 5 b" . consult-buffer-other-frame)
+         ("C-x r b" . consult-bookmark)
+         ("C-x p b" . consult-project-buffer)
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)
+         ;; M-g bindings (goto-map)
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)
+         ("M-g g" . consult-goto-line)
+         ("M-g M-g" . consult-goto-line)
+         ("M-g o" . consult-outline)
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings (search-map)
+         ("M-s d" . consult-find)
+         ("M-s D" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)
+         ("M-s e" . consult-isearch-history)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         :map minibuffer-local-map
+         ("M-s" . consult-history)
+         ("M-r" . consult-history))
+
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+
+  :init
+  ;; Optionally configure the register formatting
+  (setq register-preview-delay 0.5
+        register-preview-function #'consult-register-format)
+
+  ;; Optionally tweak the register preview window
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+
+  :config
+  ;; Optionally configure preview
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   :preview-key '(:debounce 0.4 any))
+
+  ;; Optionally configure the narrowing key
+  (setq consult-narrow-key "<")
+
+  ;; Configure consult-ripgrep to work better with projects
+  (setq consult-ripgrep-args
+        "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip")
+
+  ;; Automatically configure consult-project-function for project.el
+  (setq consult-project-function
+        (lambda (_may-prompt)
+          (if-let ((project (project-current)))
+              (project-root project)))))
+
+;; Project.el integration with consult
+(with-eval-after-load 'project
+  (define-key project-prefix-map (kbd "g") #'consult-ripgrep)
+  (define-key project-prefix-map (kbd "f") #'consult-find)
+  (define-key project-prefix-map (kbd "b") #'consult-project-buffer))
 
 ;;(use-package all-the-icons
 ;;  :ensure t)
@@ -543,7 +655,45 @@
 
 (use-package savehist
   :ensure nil ; it is built-in
-  :hook (after-init . savehist-mode))
+  :init
+  (savehist-mode)
+  :config
+  ;; Conservative savehist: only save minibuffer history, not additional variables
+  (setq savehist-save-minibuffer-history t)
+  (setq savehist-autosave-interval 60)
+
+  ;; Only save these specific safe variables (whitelist approach)
+  (setq savehist-additional-variables '(search-ring regexp-search-ring))
+
+  ;; Explicitly ignore problematic variables
+  (setq savehist-ignored-variables '(bookmark-alist
+                                      load-history
+                                      command-history
+                                      extended-command-history))
+
+  ;; Filter out fzf and other problematic history variables before saving
+  (defun savehist-filter-minibuffer-history ()
+    "Remove fzf and other problematic variables from minibuffer history."
+    (setq savehist-minibuffer-history-variables
+          (seq-filter (lambda (var)
+                       (let ((name (symbol-name var)))
+                         (not (or (string-match-p "^fzf" name)
+                                  (string-match-p "^claude-code" name)
+                                  (string-match-p "^dape" name)))))
+                     savehist-minibuffer-history-variables)))
+
+  (add-hook 'savehist-save-hook #'savehist-filter-minibuffer-history)
+
+  ;; Robust error handling for savehist
+  (defun savehist-save-safe ()
+    "Wrapper around savehist-save that catches and logs errors."
+    (condition-case err
+        (savehist-save t)
+      (error (message "Savehist error (ignored): %S" err))))
+
+  ;; Replace the timer function with our safe version
+  (advice-add 'savehist-autosave :override #'savehist-save-safe))
+
 
 ;; ---- Put backup files neatly away                                                 
 (let ((backup-dir "~/tmp/emacs/backups")
@@ -664,20 +814,20 @@
 
 (setq treesit-load-name-override-list '((js "tree-sitter-gomod" "tree-sitter-go")))
 
-(use-package fzf
-  :bind
-    ;; Don't forget to set keybinds!
-  :config
-  (setq fzf/args "-x --color bw --print-query --margin=1,0 --no-hscroll"
-        fzf/executable "fzf"
-        fzf/git-grep-args "-i --line-number %s"
-        ;; command used for `fzf-grep-*` functions
-        ;; example usage for ripgrep:
-        ;; fzf/grep-command "rg --no-heading -nH"
-        fzf/grep-command "grep -nrH"
-        ;; If nil, the fzf buffer will appear at the top of the window
-        fzf/position-bottom t
-        fzf/window-height 15))
+;;(use-package fzf
+;;  :bind
+;;    ;; Don't forget to set keybinds!
+;;  :config
+;;  (setq fzf/args "-x --color bw --print-query --margin=1,0 --no-hscroll"
+;;        fzf/executable "fzf"
+;;        fzf/git-grep-args "-i --line-number %s"
+;;        ;; command used for `fzf-grep-*` functions
+;;        ;; example usage for ripgrep:
+;;        ;; fzf/grep-command "rg --no-heading -nH"
+;;        fzf/grep-command "grep -nrH"
+;;        ;; If nil, the fzf buffer will appear at the top of the window
+;;        fzf/position-bottom t
+;;        fzf/window-height 15))
 
 ;; Does not work with treesit.el which comes with emacs
 ;;(require 'tree-sitter)
